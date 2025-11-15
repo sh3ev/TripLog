@@ -67,6 +67,14 @@ class MainActivity : AppCompatActivity() {
             },
             onItemLongClick = { trip ->
                 showTripOptionsDialog(trip)
+            },
+            onEditClick = { trip ->
+                val intent = Intent(this, AddTripActivity::class.java)
+                intent.putExtra("TRIP_ID", trip.id)
+                startActivity(intent)
+            },
+            onDeleteClick = { trip ->
+                showDeleteConfirmationDialog(trip)
             }
         )
 

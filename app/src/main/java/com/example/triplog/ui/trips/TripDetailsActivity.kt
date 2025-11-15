@@ -2,13 +2,19 @@ package com.example.triplog.ui.trips
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.triplog.R
 import com.example.triplog.data.AppDatabase
 import com.example.triplog.databinding.ActivityTripDetailsBinding
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class TripDetailsActivity : AppCompatActivity() {
@@ -30,6 +36,10 @@ class TripDetailsActivity : AppCompatActivity() {
             finish()
             return
         }
+
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "Szczegóły podróży"
 
         loadTripDetails()
         observeWeather()
@@ -98,6 +108,55 @@ class TripDetailsActivity : AppCompatActivity() {
                         Toast.makeText(this@TripDetailsActivity, state.message, Toast.LENGTH_SHORT).show()
                     }
                 }
+            }
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_trip_details, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            R.id.menu_delete_trip -> {
+                showDeleteConfirmationDialog()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showDeleteConfirmationDialog() {
+        lifecycleScope.launch {
+            val trip = withContext(Dispatchers.IO) {
+                database.tripDao().getTripById(tripId)
+            }
+            trip?.let {
+                AlertDialog.Builder(this@TripDetailsActivity)
+                    .setTitle("Usuń podróż")
+                    .setMessage("Czy na pewno chcesz usunąć podróż \"${it.title}\"?")
+                    .setPositiveButton("Usuń") { _, _ ->
+                        deleteTrip()
+                    }
+                    .setNegativeButton("Anuluj", null)
+                    .show()
+            }
+        }
+    }
+
+    private fun deleteTrip() {
+        lifecycleScope.launch {
+            try {
+                viewModel.deleteTrip(tripId)
+                Toast.makeText(this@TripDetailsActivity, "Podróż usunięta", Toast.LENGTH_SHORT).show()
+                finish()
+            } catch (e: Exception) {
+                Toast.makeText(this@TripDetailsActivity, "Błąd usuwania: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }

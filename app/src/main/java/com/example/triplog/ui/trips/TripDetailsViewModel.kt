@@ -49,6 +49,15 @@ class TripDetailsViewModel(private val database: AppDatabase) : ViewModel() {
             }
         }
     }
+
+    suspend fun deleteTrip(tripId: Long) {
+        withContext(Dispatchers.IO) {
+            val trip = database.tripDao().getTripById(tripId)
+            trip?.let {
+                database.tripDao().deleteTrip(it)
+            }
+        }
+    }
 }
 
 sealed class WeatherState {

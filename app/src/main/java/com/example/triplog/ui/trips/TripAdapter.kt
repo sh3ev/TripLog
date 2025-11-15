@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
@@ -15,7 +16,9 @@ import java.io.File
 
 class TripAdapter(
     private val onItemClick: (TripEntity) -> Unit,
-    private val onItemLongClick: (TripEntity) -> Unit
+    private val onItemLongClick: (TripEntity) -> Unit,
+    private val onEditClick: (TripEntity) -> Unit,
+    private val onDeleteClick: (TripEntity) -> Unit
 ) : ListAdapter<TripEntity, TripAdapter.TripViewHolder>(TripDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TripViewHolder {
@@ -32,6 +35,8 @@ class TripAdapter(
         private val imageView: ImageView = itemView.findViewById(R.id.imageViewThumbnail)
         private val textViewTitle: TextView = itemView.findViewById(R.id.textViewTitle)
         private val textViewDate: TextView = itemView.findViewById(R.id.textViewDate)
+        private val imageButtonEdit: ImageButton = itemView.findViewById(R.id.imageButtonEdit)
+        private val imageButtonDelete: ImageButton = itemView.findViewById(R.id.imageButtonDelete)
 
         fun bind(trip: TripEntity) {
             textViewTitle.text = trip.title
@@ -57,6 +62,14 @@ class TripAdapter(
             itemView.setOnLongClickListener {
                 onItemLongClick(trip)
                 true
+            }
+
+            imageButtonEdit.setOnClickListener {
+                onEditClick(trip)
+            }
+
+            imageButtonDelete.setOnClickListener {
+                onDeleteClick(trip)
             }
         }
     }
