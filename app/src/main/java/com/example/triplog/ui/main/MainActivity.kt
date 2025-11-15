@@ -50,6 +50,10 @@ class MainActivity : AppCompatActivity() {
         binding.fabAddTrip.setOnClickListener {
             startActivity(Intent(this, AddTripActivity::class.java))
         }
+
+        binding.buttonLogout.setOnClickListener {
+            showLogoutConfirmationDialog()
+        }
     }
 
     override fun onResume() {
@@ -192,12 +196,23 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_logout -> {
-                SharedPreferencesHelper.clearLoggedInUser(this)
-                navigateToLogin()
+                showLogoutConfirmationDialog()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showLogoutConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Wylogowanie")
+            .setMessage("Czy na pewno chcesz się wylogować?")
+            .setPositiveButton("Wyloguj") { _, _ ->
+                SharedPreferencesHelper.clearLoggedInUser(this)
+                navigateToLogin()
+            }
+            .setNegativeButton("Anuluj", null)
+            .show()
     }
 
     private fun navigateToLogin() {

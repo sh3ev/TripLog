@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Gradient tła nagłówka -->
+    <gradient
+        android:startColor="@color/auth_green_start"
+        android:endColor="@color/auth_green_end"
+        android:angle="135" />
+
+    <!-- Zaokrąglone dolne rogi jak na screenie -->
+    <corners
+        android:bottomLeftRadius="40dp"
+        android:bottomRightRadius="40dp" />
+</shape>

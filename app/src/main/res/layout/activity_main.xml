@@ -31,9 +31,30 @@
             android:layout_margin="16dp"
             android:hint="Wyszukaj podróże..."
             android:background="@color/surface_variant_dark"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/buttonLogout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonLogout"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wyloguj"
+            android:textSize="12sp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            app:icon="@android:drawable/ic_lock_power_off"
+            app:iconGravity="textStart"
+            app:iconSize="16dp"
+            app:iconPadding="4dp"
+            app:strokeColor="@color/accent_green"
+            android:textColor="@color/accent_green"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/editTextSearch" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewTrips"

@@ -2,10 +2,16 @@ package com.example.triplog.ui.login
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
-import androidx.activity.viewModels
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.util.Patterns
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.triplog.R
 import com.example.triplog.data.AppDatabase
 import com.example.triplog.databinding.ActivityLoginBinding
 import com.example.triplog.ui.main.MainActivity
@@ -16,7 +22,7 @@ import kotlinx.coroutines.launch
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private val database by lazy { AppDatabase.getDatabase(this) }
-    private val viewModel: LoginViewModel by lazy { 
+    private val viewModel: LoginViewModel by lazy {
         androidx.lifecycle.ViewModelProvider(this, LoginViewModelFactory(database))[LoginViewModel::class.java]
     }
 
@@ -25,7 +31,6 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Sprawdź czy użytkownik jest już zalogowany
         val loggedInUser = SharedPreferencesHelper.getLoggedInUser(this)
         if (loggedInUser != null) {
             navigateToMain()
@@ -33,22 +38,68 @@ class LoginActivity : AppCompatActivity() {
         }
 
         binding.buttonLogin.setOnClickListener {
+            clearErrors()
             val email = binding.editTextEmail.text.toString().trim()
             val password = binding.editTextPassword.text.toString()
 
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Wypełnij wszystkie pola", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            var isValid = true
+            if (email.isEmpty()) {
+                binding.textViewEmailError.text = "Wypełnij to pole"
+                binding.textViewEmailError.visibility = View.VISIBLE
+                isValid = false
+            } else if (!isValidEmail(email)) {
+                binding.textViewEmailError.text = "Niepoprawny format email"
+                binding.textViewEmailError.visibility = View.VISIBLE
+                isValid = false
             }
 
-            viewModel.login(email, password)
+            if (password.isEmpty()) {
+                binding.textViewPasswordError.text = "Wypełnij to pole"
+                binding.textViewPasswordError.visibility = View.VISIBLE
+                isValid = false
+            }
+
+            if (isValid) {
+                viewModel.login(email, password)
+            }
         }
 
-        binding.textViewRegister.setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java))
-        }
+        setupRegisterLink()
 
         observeLoginResult()
+    }
+
+    private fun clearErrors() {
+        binding.textViewEmailError.visibility = View.GONE
+        binding.textViewPasswordError.visibility = View.GONE
+    }
+
+    private fun isValidEmail(email: String): Boolean {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
+    private fun setupRegisterLink() {
+        val textView = binding.textRegisterLink
+        val fullText = "Don't have an account? Register"
+        val spannableString = SpannableString(fullText)
+        val clickableSpan = object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                startActivity(Intent(this@LoginActivity, RegisterActivity::class.java))
+            }
+
+            override fun updateDrawState(ds: TextPaint) {
+                super.updateDrawState(ds)
+                ds.isUnderlineText = false
+                ds.color = resources.getColor(R.color.accent_blue, null)
+            }
+        }
+
+        val startIndex = fullText.indexOf("Register")
+        val endIndex = startIndex + "Register".length
+        spannableString.setSpan(clickableSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+        textView.text = spannableString
+        textView.movementMethod = LinkMovementMethod.getInstance()
     }
 
     private fun observeLoginResult() {
@@ -60,7 +111,8 @@ class LoginActivity : AppCompatActivity() {
                         navigateToMain()
                     }
                     is LoginResult.Error -> {
-                        Toast.makeText(this@LoginActivity, result.message, Toast.LENGTH_SHORT).show()
+                        binding.textViewPasswordError.text = result.message
+                        binding.textViewPasswordError.visibility = View.VISIBLE
                     }
                 }
             }
@@ -82,4 +134,3 @@ class LoginViewModelFactory(private val database: AppDatabase) : androidx.lifecy
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-

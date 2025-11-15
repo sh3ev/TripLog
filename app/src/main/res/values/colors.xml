@@ -22,6 +22,7 @@
     <color name="text_primary">#FFFFFFFF</color>
     <color name="text_secondary">#FFB0B0B0</color>
     <color name="text_hint">#FF808080</color>
+
     
     <!-- Primary and secondary for Material Design -->
     <color name="primary">@color/accent_blue</color>
@@ -31,4 +32,12 @@
     <color name="secondary">@color/accent_green</color>
     <color name="secondary_dark">@color/accent_green_dark</color>
     <color name="secondary_light">@color/accent_green_light</color>
+
+    <!-- Tło ekranu logowania/rejestracji -->
+    <color name="auth_background">#F4F6F8</color>
+
+    <!-- Gradient w nagłówku -->
+    <color name="auth_green_start">#00985B</color>
+    <color name="auth_green_end">#00C853</color>
+
 </resources>

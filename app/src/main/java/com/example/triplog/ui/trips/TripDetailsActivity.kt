@@ -4,18 +4,28 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import android.content.Intent
 import com.example.triplog.R
 import com.example.triplog.data.AppDatabase
 import com.example.triplog.databinding.ActivityTripDetailsBinding
+import com.example.triplog.ui.login.LoginActivity
+import com.example.triplog.utils.SharedPreferencesHelper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class TripDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTripDetailsBinding
@@ -24,6 +34,8 @@ class TripDetailsActivity : AppCompatActivity() {
         androidx.lifecycle.ViewModelProvider(this, TripDetailsViewModelFactory(database))[TripDetailsViewModel::class.java]
     }
     private var tripId: Long = -1
+    private var lastWeatherUpdateTime: Long = 0
+    private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,67 +60,125 @@ class TripDetailsActivity : AppCompatActivity() {
     private fun loadTripDetails() {
         lifecycleScope.launch {
             try {
-                val trip = database.tripDao().getTripById(tripId)
-                trip?.let {
-                    binding.textViewTitle.text = it.title
-                    binding.textViewDescription.text = it.description
-                    binding.textViewDate.text = it.date
-
-                    if (!it.imagePath.isNullOrEmpty()) {
-                        val file = File(it.imagePath)
-                        if (file.exists()) {
-                            val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                            binding.imageViewTrip.setImageBitmap(bitmap)
-                        }
-                    }
-
-                    if (it.latitude != null && it.longitude != null) {
-                        val lat = it.latitude!!
-                        val lon = it.longitude!!
-                        binding.textViewLocation.text = "Szerokość: $lat, Długość: $lon"
-                        binding.buttonGetWeather.setOnClickListener {
-                            viewModel.fetchWeather(lat, lon)
-                        }
-                        binding.buttonGetWeather.isEnabled = true
-                    } else {
-                        binding.textViewLocation.text = "Brak lokalizacji"
-                        binding.buttonGetWeather.isEnabled = false
-                    }
-
-                    if (!it.weatherSummary.isNullOrEmpty()) {
-                        binding.textViewWeather.text = it.weatherSummary
-                    }
-                } ?: run {
+                val trip = withContext(Dispatchers.IO) {
+                    database.tripDao().getTripById(tripId)
+                }
+                
+                if (trip == null) {
                     Toast.makeText(this@TripDetailsActivity, "Podróż nie znaleziona", Toast.LENGTH_SHORT).show()
                     finish()
+                    return@launch
+                }
+
+                try {
+                    binding.textViewTitle.text = trip.title
+                    binding.textViewDescription.text = trip.description
+                    binding.textViewDate.text = trip.date
+
+                    if (!trip.imagePath.isNullOrEmpty()) {
+                        try {
+                            val file = File(trip.imagePath)
+                            if (file.exists()) {
+                                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                                binding.imageViewTrip.setImageBitmap(bitmap)
+                            }
+                        } catch (e: Exception) {
+                            // Ignore image loading errors
+                        }
+                    }
+
+                    if (trip.latitude != null && trip.longitude != null) {
+                        val lat = trip.latitude!!
+                        val lon = trip.longitude!!
+                        binding.textViewLocation.text = String.format(Locale.getDefault(), "%.4f°N, %.4f°E", lat, lon)
+                        binding.buttonRefreshWeather.setOnClickListener {
+                            viewModel.fetchWeather(lat, lon)
+                        }
+                        binding.buttonRefreshWeather.isEnabled = true
+                    } else {
+                        binding.textViewLocation.text = "Brak lokalizacji"
+                        binding.buttonRefreshWeather.isEnabled = false
+                    }
+
+                    if (!trip.weatherSummary.isNullOrEmpty()) {
+                        displayWeatherData(trip.weatherSummary, null)
+                    } else {
+                        binding.textViewWeather.text = "Brak danych pogodowych"
+                        binding.textViewWeatherDescription.visibility = View.GONE
+                        binding.textViewWeatherLastUpdate.visibility = View.GONE
+                        binding.imageViewWeatherIcon.visibility = View.GONE
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@TripDetailsActivity, "Błąd wyświetlania danych: ${e.message}", Toast.LENGTH_SHORT).show()
+                    e.printStackTrace()
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@TripDetailsActivity, "Błąd ładowania: ${e.message}", Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
             }
         }
     }
 
     private fun observeWeather() {
         lifecycleScope.launch {
-            viewModel.weatherState.collect { state ->
-                when (state) {
-                    is WeatherState.Loading -> {
-                        binding.textViewWeather.text = "Ładowanie pogody..."
-                        binding.buttonGetWeather.isEnabled = false
-                    }
-                    is WeatherState.Success -> {
-                        binding.textViewWeather.text = state.summary
-                        binding.buttonGetWeather.isEnabled = true
-                        // Zapisz pogodę w bazie
-                        viewModel.updateTripWeather(tripId, state.summary)
-                    }
-                    is WeatherState.Error -> {
-                        binding.textViewWeather.text = state.message
-                        binding.buttonGetWeather.isEnabled = true
-                        Toast.makeText(this@TripDetailsActivity, state.message, Toast.LENGTH_SHORT).show()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.weatherState.collect { state ->
+                    when (state) {
+                        is WeatherState.Loading -> {
+                            binding.textViewWeather.text = "Ładowanie pogody..."
+                            binding.textViewWeatherDescription.visibility = View.GONE
+                            binding.textViewWeatherLastUpdate.visibility = View.GONE
+                            binding.imageViewWeatherIcon.visibility = View.GONE
+                            binding.buttonRefreshWeather.isEnabled = false
+                        }
+                        is WeatherState.Success -> {
+                            val summary = state.summary
+                            val description = state.response.weather.firstOrNull()?.description
+                            displayWeatherData(summary, description)
+                            binding.buttonRefreshWeather.isEnabled = true
+                            // Zapisz pogodę w bazie
+                            viewModel.updateTripWeather(tripId, summary)
+                            lastWeatherUpdateTime = System.currentTimeMillis()
+                            updateLastUpdateTime()
+                        }
+                        is WeatherState.Error -> {
+                            binding.textViewWeather.text = state.message
+                            binding.textViewWeatherDescription.visibility = View.GONE
+                            binding.textViewWeatherLastUpdate.visibility = View.GONE
+                            binding.imageViewWeatherIcon.visibility = View.GONE
+                            binding.buttonRefreshWeather.isEnabled = true
+                            Toast.makeText(this@TripDetailsActivity, state.message, Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private fun displayWeatherData(summary: String, description: String?) {
+        // Parse temperature from summary (format: "XX°C, description")
+        val parts = summary.split(", ")
+        val temperature = parts.firstOrNull() ?: summary
+        val weatherDescription = description ?: parts.getOrNull(1) ?: ""
+
+        binding.textViewWeather.text = temperature
+        if (weatherDescription.isNotEmpty()) {
+            val capitalized = weatherDescription.replaceFirstChar { 
+                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() 
+            }
+            binding.textViewWeatherDescription.text = capitalized
+            binding.textViewWeatherDescription.visibility = View.VISIBLE
+        } else {
+            binding.textViewWeatherDescription.visibility = View.GONE
+        }
+        binding.imageViewWeatherIcon.visibility = View.VISIBLE
+    }
+
+    private fun updateLastUpdateTime() {
+        if (lastWeatherUpdateTime > 0) {
+            val timeString = timeFormat.format(Date(lastWeatherUpdateTime))
+            binding.textViewWeatherLastUpdate.text = "Ostatnia aktualizacja: $timeString"
+            binding.textViewWeatherLastUpdate.visibility = View.VISIBLE
         }
     }
 
@@ -127,8 +197,31 @@ class TripDetailsActivity : AppCompatActivity() {
                 showDeleteConfirmationDialog()
                 true
             }
+            R.id.menu_logout -> {
+                showLogoutConfirmationDialog()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showLogoutConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Wylogowanie")
+            .setMessage("Czy na pewno chcesz się wylogować?")
+            .setPositiveButton("Wyloguj") { _, _ ->
+                SharedPreferencesHelper.clearLoggedInUser(this)
+                navigateToLogin()
+            }
+            .setNegativeButton("Anuluj", null)
+            .show()
+    }
+
+    private fun navigateToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
     private fun showDeleteConfirmationDialog() {
