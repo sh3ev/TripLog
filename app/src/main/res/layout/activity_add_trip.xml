@@ -4,12 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/background_dark"
     tools:context=".ui.trips.AddTripActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:background="@color/background_dark">
 
         <EditText
             android:id="@+id/editTextTitle"
@@ -50,6 +52,7 @@
             android:layout_height="wrap_content"
             android:text="Wybierz zdjęcie"
             android:layout_marginTop="16dp"
+            android:backgroundTint="@color/accent_blue"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/editTextDate" />
@@ -71,6 +74,7 @@
             android:layout_height="wrap_content"
             android:text="Pobierz lokalizację"
             android:layout_marginTop="16dp"
+            android:backgroundTint="@color/accent_blue"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imageViewPreview" />
@@ -80,6 +84,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Brak lokalizacji"
+            android:textColor="@color/text_secondary"
             android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -91,6 +96,7 @@
             android:layout_height="wrap_content"
             android:text="Zapisz"
             android:layout_marginTop="24dp"
+            android:backgroundTint="@color/accent_green"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textViewLocation" />

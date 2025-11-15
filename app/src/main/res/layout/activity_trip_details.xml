@@ -21,12 +21,14 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/background_dark"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:background="@color/background_dark">
 
         <TextView
             android:id="@+id/textViewTitle"
@@ -35,6 +37,7 @@
             android:text="Tytuł podróży"
             android:textSize="24sp"
             android:textStyle="bold"
+            android:textColor="@color/text_primary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -45,7 +48,7 @@
             android:layout_height="wrap_content"
             android:text="2024-01-01"
             android:textSize="16sp"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@color/text_secondary"
             android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -68,6 +71,7 @@
             android:layout_height="wrap_content"
             android:text="Opis podróży"
             android:textSize="16sp"
+            android:textColor="@color/text_primary"
             android:layout_marginTop="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -79,6 +83,7 @@
             android:layout_height="wrap_content"
             android:text="Brak lokalizacji"
             android:textSize="14sp"
+            android:textColor="@color/text_secondary"
             android:layout_marginTop="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -91,6 +96,7 @@
             android:text="Pobierz pogodę"
             android:enabled="false"
             android:layout_marginTop="16dp"
+            android:backgroundTint="@color/accent_green"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textViewLocation" />
@@ -102,6 +108,7 @@
             android:text="Brak danych pogodowych"
             android:textSize="16sp"
             android:textStyle="bold"
+            android:textColor="@color/text_primary"
             android:layout_marginTop="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

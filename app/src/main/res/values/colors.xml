@@ -1,5 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    
+    <!-- Modern dark theme colors -->
+    <color name="background_dark">#FF121212</color>
+    <color name="surface_dark">#FF1E1E1E</color>
+    <color name="surface_variant_dark">#FF2C2C2C</color>
+    
+    <!-- Accent colors - Green and Blue -->
+    <color name="accent_green">#FF4CAF50</color>
+    <color name="accent_green_dark">#FF2E7D32</color>
+    <color name="accent_green_light">#FF81C784</color>
+    
+    <color name="accent_blue">#FF2196F3</color>
+    <color name="accent_blue_dark">#FF1565C0</color>
+    <color name="accent_blue_light">#FF64B5F6</color>
+    
+    <!-- Text colors -->
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FFB0B0B0</color>
+    <color name="text_hint">#FF808080</color>
+    
+    <!-- Primary and secondary for Material Design -->
+    <color name="primary">@color/accent_blue</color>
+    <color name="primary_dark">@color/accent_blue_dark</color>
+    <color name="primary_light">@color/accent_blue_light</color>
+    
+    <color name="secondary">@color/accent_green</color>
+    <color name="secondary_dark">@color/accent_green_dark</color>
+    <color name="secondary_light">@color/accent_green_light</color>
 </resources>

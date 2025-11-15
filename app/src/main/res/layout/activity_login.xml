@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
+    android:background="@color/background_dark"
     tools:context=".ui.login.LoginActivity">
 
     <TextView
@@ -14,6 +15,7 @@
         android:text="Dziennik Podróży"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:textColor="@color/text_primary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -47,6 +49,7 @@
         android:layout_height="wrap_content"
         android:text="Zaloguj"
         android:layout_marginTop="24dp"
+        android:backgroundTint="@color/accent_blue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextPassword" />
@@ -56,7 +59,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Nie masz konta? Zarejestruj się"
-        android:textColor="@android:color/holo_blue_dark"
+        android:textColor="@color/accent_green"
         android:layout_marginTop="16dp"
         android:clickable="true"
         android:focusable="true"
