@@ -65,6 +65,8 @@
                     android:drawableEnd="@android:drawable/ic_menu_close_clear_cancel"
                     android:drawablePadding="16dp"
                     android:ems="10"
+                    android:textColor="#717171"
+                    android:textColorHint="#717171"
                     android:hint="Wyszkukaj podróż"
                     android:inputType="text"
                     android:padding="16dp"

@@ -4,13 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.PopupMenu
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.triplog.R
@@ -160,19 +157,15 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.menu_logout -> {
-                showLogoutConfirmationDialog()
-                true
+    private fun showAvatarMenu(anchor: View) {
+        AlertDialog.Builder(this)
+            .setTitle("Menu")
+            .setItems(arrayOf("Wyloguj")) { _, which ->
+                when (which) {
+                    0 -> showLogoutConfirmationDialog()
+                }
             }
-            else -> super.onOptionsItemSelected(item)
-        }
+            .show()
     }
 
     private fun showLogoutConfirmationDialog() {
@@ -185,21 +178,6 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Anuluj", null)
             .show()
-    }
-
-    private fun showAvatarMenu(anchor: View) {
-        val popupMenu = PopupMenu(this, anchor)
-        popupMenu.menuInflater.inflate(R.menu.menu_main, popupMenu.menu)
-        popupMenu.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.menu_logout -> {
-                    showLogoutConfirmationDialog()
-                    true
-                }
-                else -> false
-            }
-        }
-        popupMenu.show()
     }
 
     private fun navigateToLogin() {

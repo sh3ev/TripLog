@@ -2,8 +2,6 @@ package com.example.triplog.ui.trips
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.webkit.WebView
 import android.widget.Toast
@@ -18,8 +16,6 @@ import android.content.Intent
 import com.example.triplog.R
 import com.example.triplog.data.AppDatabase
 import com.example.triplog.databinding.ActivityTripDetailsBinding
-import com.example.triplog.ui.login.LoginActivity
-import com.example.triplog.utils.SharedPreferencesHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -246,77 +242,6 @@ class TripDetailsActivity : AppCompatActivity() {
         webView.loadDataWithBaseURL("https://example.com", html, "text/html", "UTF-8", null)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_trip_details, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            android.R.id.home -> {
-                finish()
-                true
-            }
-            R.id.menu_delete_trip -> {
-                showDeleteConfirmationDialog()
-                true
-            }
-            R.id.menu_logout -> {
-                showLogoutConfirmationDialog()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    private fun showLogoutConfirmationDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Wylogowanie")
-            .setMessage("Czy na pewno chcesz się wylogować?")
-            .setPositiveButton("Wyloguj") { _, _ ->
-                SharedPreferencesHelper.clearLoggedInUser(this)
-                navigateToLogin()
-            }
-            .setNegativeButton("Anuluj", null)
-            .show()
-    }
-
-    private fun navigateToLogin() {
-        val intent = Intent(this, LoginActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
-    }
-
-    private fun showDeleteConfirmationDialog() {
-        lifecycleScope.launch {
-            val trip = withContext(Dispatchers.IO) {
-                database.tripDao().getTripById(tripId)
-            }
-            trip?.let {
-                AlertDialog.Builder(this@TripDetailsActivity)
-                    .setTitle("Usuń podróż")
-                    .setMessage("Czy na pewno chcesz usunąć podróż \"${it.title}\"?")
-                    .setPositiveButton("Usuń") { _, _ ->
-                        deleteTrip()
-                    }
-                    .setNegativeButton("Anuluj", null)
-                    .show()
-            }
-        }
-    }
-
-    private fun deleteTrip() {
-        lifecycleScope.launch {
-            try {
-                viewModel.deleteTrip(tripId)
-                Toast.makeText(this@TripDetailsActivity, "Podróż usunięta", Toast.LENGTH_SHORT).show()
-                finish()
-            } catch (e: Exception) {
-                Toast.makeText(this@TripDetailsActivity, "Błąd usuwania: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 }
 
 class TripDetailsViewModelFactory(private val database: AppDatabase) : androidx.lifecycle.ViewModelProvider.Factory {
