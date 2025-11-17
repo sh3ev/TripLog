@@ -4,9 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.triplog.R
@@ -19,20 +21,27 @@ import com.example.triplog.ui.trips.TripAdapter
 import com.example.triplog.ui.trips.TripDetailsActivity
 import com.example.triplog.utils.SharedPreferencesHelper
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private lateinit var adapter: TripAdapter
     private val database by lazy { AppDatabase.getDatabase(this) }
     private var currentUserEmail: String? = null
+    private lateinit var tripAdapter: TripAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        binding.imageView3.setOnClickListener { view ->
+            showAvatarMenu(view)
+        }
+
+        binding.buttonAddTrip.setOnClickListener {
+            navigateToAddTrip()
+        }
 
         currentUserEmail = SharedPreferencesHelper.getLoggedInUser(this)
         if (currentUserEmail == null) {
@@ -40,153 +49,59 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.title = "Moje Podróże"
-
         setupRecyclerView()
-        setupSearch()
-        observeTrips()
 
-        binding.fabAddTrip.setOnClickListener {
-            startActivity(Intent(this, AddTripActivity::class.java))
+        // Fetch user and set the welcome message
+        lifecycleScope.launch {
+            val user = withContext(Dispatchers.IO) {
+                currentUserEmail?.let { database.userDao().getUserByEmail(it) }
+            }
+            user?.let {
+                binding.textView7.text = "Witaj, ${it.name}!"
+            }
         }
 
-        binding.buttonLogout.setOnClickListener {
-            showLogoutConfirmationDialog()
-        }
+        loadTrips()
     }
 
     override fun onResume() {
         super.onResume()
-        // Refresh trips when returning from AddTripActivity
-        observeTrips()
+        loadTrips()
     }
 
     private fun setupRecyclerView() {
-        adapter = TripAdapter(
+        tripAdapter = TripAdapter(
+            database = database,
+            lifecycleScope = lifecycleScope,
             onItemClick = { trip ->
-                val intent = Intent(this, TripDetailsActivity::class.java)
-                intent.putExtra("TRIP_ID", trip.id)
-                startActivity(intent)
+                navigateToTripDetails(trip)
             },
             onItemLongClick = { trip ->
-                showTripOptionsDialog(trip)
+                // Long click functionality if needed
             },
             onEditClick = { trip ->
-                val intent = Intent(this, AddTripActivity::class.java)
-                intent.putExtra("TRIP_ID", trip.id)
-                startActivity(intent)
+                navigateToEditTrip(trip)
             },
             onDeleteClick = { trip ->
                 showDeleteConfirmationDialog(trip)
             }
         )
-
-        binding.recyclerViewTrips.layoutManager = LinearLayoutManager(this)
-        binding.recyclerViewTrips.adapter = adapter
+        binding.recyclerViewTrips.apply {
+            adapter = tripAdapter
+            layoutManager = LinearLayoutManager(this@MainActivity)
+        }
     }
 
-    private fun setupSearch() {
-        binding.editTextSearch.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText.isNullOrEmpty()) {
-                    observeTrips()
-                } else {
-                    observeSearchResults(newText)
-                }
-                return true
-            }
-        })
-    }
-
-    private fun observeTrips() {
+    private fun loadTrips() {
         currentUserEmail?.let { email ->
             lifecycleScope.launch {
                 database.tripDao().getTripsByUser(email).collect { trips ->
-                    adapter.submitList(trips)
+                    tripAdapter.submitList(trips)
                 }
             }
         }
     }
 
-    private fun observeSearchResults(query: String) {
-        currentUserEmail?.let { email ->
-            lifecycleScope.launch {
-                database.tripDao().searchTrips(email, query).collect { trips ->
-                    adapter.submitList(trips)
-                }
-            }
-        }
-    }
-
-    private fun showTripOptionsDialog(trip: TripEntity) {
-        val options = arrayOf("Edytuj", "Usuń", "Wyślij email")
-        AlertDialog.Builder(this)
-            .setTitle(trip.title)
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> {
-                        // Edit
-                        val intent = Intent(this, AddTripActivity::class.java)
-                        intent.putExtra("TRIP_ID", trip.id)
-                        startActivity(intent)
-                    }
-                    1 -> {
-                        // Delete
-                        showDeleteConfirmationDialog(trip)
-                    }
-                    2 -> {
-                        // Send email
-                        sendTripEmail(trip)
-                    }
-                }
-            }
-            .show()
-    }
-
-    private fun showDeleteConfirmationDialog(trip: TripEntity) {
-        AlertDialog.Builder(this)
-            .setTitle("Usuń podróż")
-            .setMessage("Czy na pewno chcesz usunąć podróż \"${trip.title}\"?")
-            .setPositiveButton("Usuń") { _, _ ->
-                deleteTrip(trip)
-            }
-            .setNegativeButton("Anuluj", null)
-            .show()
-    }
-
-    private fun deleteTrip(trip: TripEntity) {
-        lifecycleScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    database.tripDao().deleteTrip(trip)
-                }
-                Toast.makeText(this@MainActivity, "Podróż usunięta", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(this@MainActivity, "Błąd usuwania: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun sendTripEmail(trip: TripEntity) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf("example@email.com")) // Można zmienić na rzeczywisty adres
-            putExtra(Intent.EXTRA_SUBJECT, "Podróż: ${trip.title}")
-            putExtra(
-                Intent.EXTRA_TEXT,
-                "Tytuł: ${trip.title}\n" +
-                        "Opis: ${trip.description}\n" +
-                        "Data: ${trip.date}\n" +
-                        if (trip.weatherSummary != null) "Pogoda: ${trip.weatherSummary}\n" else ""
-            )
-        }
-        startActivity(Intent.createChooser(intent, "Wyślij email"))
-    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -215,9 +130,63 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showAvatarMenu(anchor: View) {
+        val popupMenu = PopupMenu(this, anchor)
+        popupMenu.menuInflater.inflate(R.menu.menu_main, popupMenu.menu)
+        popupMenu.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.menu_logout -> {
+                    showLogoutConfirmationDialog()
+                    true
+                }
+                else -> false
+            }
+        }
+        popupMenu.show()
+    }
+
     private fun navigateToLogin() {
         startActivity(Intent(this, LoginActivity::class.java))
         finish()
     }
-}
 
+    private fun navigateToAddTrip() {
+        startActivity(Intent(this, AddTripActivity::class.java))
+    }
+
+    private fun navigateToTripDetails(trip: TripEntity) {
+        val intent = Intent(this, TripDetailsActivity::class.java)
+        intent.putExtra("TRIP_ID", trip.id)
+        startActivity(intent)
+    }
+
+    private fun navigateToEditTrip(trip: TripEntity) {
+        val intent = Intent(this, AddTripActivity::class.java)
+        intent.putExtra("TRIP_ID", trip.id)
+        startActivity(intent)
+    }
+
+    private fun showDeleteConfirmationDialog(trip: TripEntity) {
+        AlertDialog.Builder(this)
+            .setTitle("Usuń podróż")
+            .setMessage("Czy na pewno chcesz usunąć podróż \"${trip.title}\"?")
+            .setPositiveButton("Usuń") { _, _ ->
+                deleteTrip(trip)
+            }
+            .setNegativeButton("Anuluj", null)
+            .show()
+    }
+
+    private fun deleteTrip(trip: TripEntity) {
+        lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    database.tripDao().deleteTrip(trip)
+                }
+                Toast.makeText(this@MainActivity, "Podróż usunięta", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Błąd usuwania: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+}

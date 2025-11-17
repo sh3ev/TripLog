@@ -10,9 +10,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.triplog.R
 import com.example.triplog.data.AppDatabase
 import com.example.triplog.data.entities.TripEntity
+import com.example.triplog.data.entities.TripImageEntity
 import com.example.triplog.databinding.ActivityAddTripBinding
 import com.example.triplog.utils.SharedPreferencesHelper
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -30,15 +32,16 @@ class AddTripActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddTripBinding
     private val database by lazy { AppDatabase.getDatabase(this) }
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private var selectedImagePath: String? = null
+    private val selectedImagePaths = mutableListOf<String>()
     private var tripId: Long? = null
     private var currentUserEmail: String? = null
+    private lateinit var selectedImageAdapter: SelectedImageAdapter
 
     private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            saveImageFromUri(it)
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris: List<Uri> ->
+        uris.forEach { uri ->
+            saveImageFromUri(uri)
         }
     }
 
@@ -66,6 +69,8 @@ class AddTripActivity : AppCompatActivity() {
 
         tripId = intent.getLongExtra("TRIP_ID", -1).takeIf { it != -1L }
 
+        setupImageRecyclerView()
+
         if (tripId != null) {
             binding.buttonSave.text = "Zaktualizuj"
             loadTripData()
@@ -84,6 +89,21 @@ class AddTripActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupImageRecyclerView() {
+        selectedImageAdapter = SelectedImageAdapter { imagePath ->
+            removeImage(imagePath)
+        }
+        binding.recyclerViewSelectedImages.apply {
+            adapter = selectedImageAdapter
+            layoutManager = LinearLayoutManager(this@AddTripActivity, LinearLayoutManager.HORIZONTAL, false)
+        }
+    }
+
+    private fun removeImage(imagePath: String) {
+        selectedImagePaths.remove(imagePath)
+        selectedImageAdapter.submitList(selectedImagePaths.toList())
+    }
+
     private fun saveImageFromUri(uri: Uri) {
         try {
             val inputStream = contentResolver.openInputStream(uri)
@@ -96,9 +116,10 @@ class AddTripActivity : AppCompatActivity() {
             inputStream?.copyTo(outputStream)
             inputStream?.close()
             outputStream.close()
-            selectedImagePath = imageFile.absolutePath
-            binding.imageViewPreview.setImageURI(uri)
-            Toast.makeText(this, "Zdjęcie wybrane", Toast.LENGTH_SHORT).show()
+            
+            selectedImagePaths.add(imageFile.absolutePath)
+            selectedImageAdapter.submitList(selectedImagePaths.toList())
+            Toast.makeText(this, "Zdjęcie dodane", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Toast.makeText(this, "Błąd zapisu zdjęcia: ${e.message}", Toast.LENGTH_SHORT).show()
         }
@@ -149,10 +170,15 @@ class AddTripActivity : AppCompatActivity() {
                         binding.editTextTitle.setText(it.title)
                         binding.editTextDescription.setText(it.description)
                         binding.editTextDate.setText(it.date)
-                        if (!it.imagePath.isNullOrEmpty()) {
-                            selectedImagePath = it.imagePath
-                            binding.imageViewPreview.setImageURI(Uri.fromFile(File(it.imagePath)))
+                        
+                        // Load existing images
+                        val images = withContext(Dispatchers.IO) {
+                            database.tripImageDao().getImagesByTripIdSync(id)
                         }
+                        selectedImagePaths.clear()
+                        selectedImagePaths.addAll(images.map { img -> img.imagePath })
+                        selectedImageAdapter.submitList(selectedImagePaths.toList())
+                        
                         if (it.latitude != null && it.longitude != null) {
                             binding.textViewLocation.text = "Szerokość: ${it.latitude}, Długość: ${it.longitude}"
                             binding.textViewLocation.tag = "${it.latitude},${it.longitude}"
@@ -189,35 +215,52 @@ class AddTripActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val trip = if (tripId != null) {
+                val savedTripId = if (tripId != null) {
+                    // Update existing trip
                     val existingTrip = withContext(Dispatchers.IO) {
                         database.tripDao().getTripById(tripId!!)
                     }
-                    existingTrip?.copy(
+                    val updatedTrip = existingTrip?.copy(
                         title = title,
                         description = description,
                         date = date,
-                        imagePath = selectedImagePath,
                         latitude = latitude,
                         longitude = longitude
                     ) ?: return@launch
+                    
+                    withContext(Dispatchers.IO) {
+                        database.tripDao().updateTrip(updatedTrip)
+                        // Delete old images and insert new ones
+                        database.tripImageDao().deleteImagesByTripId(tripId!!)
+                    }
+                    tripId!!
                 } else {
-                    TripEntity(
+                    // Create new trip
+                    val newTrip = TripEntity(
                         userEmail = currentUserEmail!!,
                         title = title,
                         description = description,
                         date = date,
-                        imagePath = selectedImagePath,
                         latitude = latitude,
                         longitude = longitude
                     )
+                    
+                    withContext(Dispatchers.IO) {
+                        database.tripDao().insertTrip(newTrip)
+                    }
                 }
 
-                withContext(Dispatchers.IO) {
-                    if (tripId != null) {
-                        database.tripDao().updateTrip(trip)
-                    } else {
-                        database.tripDao().insertTrip(trip)
+                // Save images
+                if (selectedImagePaths.isNotEmpty()) {
+                    val imageEntities = selectedImagePaths.mapIndexed { index, path ->
+                        TripImageEntity(
+                            tripId = savedTripId,
+                            imagePath = path,
+                            orderIndex = index
+                        )
+                    }
+                    withContext(Dispatchers.IO) {
+                        database.tripImageDao().insertImages(imageEntities)
                     }
                 }
 

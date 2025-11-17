@@ -4,45 +4,43 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark"
+    android:background="@drawable/background_main"
     tools:context=".ui.trips.TripDetailsActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            android:layout_height="172dp"
+            android:background="@drawable/top_background" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:layout_height="match_parent"
+            android:background="@drawable/background_main"
+            android:padding="1dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <!-- Card: Trip Information -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardTrip"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/surface_variant_dark"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="8dp"
+                app:cardBackgroundColor="@color/secondary_dark"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:strokeWidth="0dp"
+                app:layout_constraintBottom_toTopOf="@+id/cardWeather"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toTopOf="parent"
+                app:strokeWidth="0dp">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
@@ -54,11 +52,12 @@
                         android:id="@+id/textViewTitle"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:fontFamily="sans-serif-medium"
                         android:text="Tytuł podróży"
+                        android:textColor="@color/text_primary"
                         android:textSize="24sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:fontFamily="sans-serif-medium"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
@@ -68,39 +67,38 @@
                         android:id="@+id/layoutDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
                         android:layout_marginTop="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/textViewTitle">
 
                         <ImageView
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            android:src="@android:drawable/ic_menu_my_calendar"
+                            android:layout_marginEnd="8dp"
                             android:contentDescription="Data"
-                            android:tint="@color/text_secondary"
-                            android:layout_marginEnd="8dp" />
+                            android:src="@android:drawable/ic_menu_my_calendar"
+                            app:tint="@color/text_secondary" />
 
                         <TextView
                             android:id="@+id/textViewDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif"
                             android:text="2024-01-01"
-                            android:textSize="14sp"
                             android:textColor="@color/text_secondary"
-                            android:fontFamily="sans-serif" />
+                            android:textSize="14sp" />
                     </LinearLayout>
 
-                    <!-- Trip Image -->
-                    <ImageView
-                        android:id="@+id/imageViewTrip"
+                    <!-- Trip Images Gallery -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerViewImages"
                         android:layout_width="0dp"
                         android:layout_height="200dp"
-                        android:scaleType="centerCrop"
-                        android:contentDescription="Zdjęcie podróży"
                         android:layout_marginTop="16dp"
-                        android:background="@color/surface_dark"
+                        android:clipToPadding="false"
+                        android:orientation="horizontal"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/layoutDate" />
@@ -110,23 +108,23 @@
                         android:id="@+id/textViewDescription"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Opis podróży"
-                        android:textSize="16sp"
-                        android:textColor="@color/text_primary"
-                        android:lineSpacingExtra="4dp"
                         android:layout_marginTop="16dp"
+                        android:lineSpacingExtra="4dp"
+                        android:text="Opis podróży"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/imageViewTrip" />
+                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewImages" />
 
                     <!-- Location with icon -->
                     <LinearLayout
                         android:id="@+id/layoutLocation"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
                         android:layout_marginTop="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/textViewDescription">
@@ -134,20 +132,20 @@
                         <ImageView
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            android:src="@android:drawable/ic_menu_mylocation"
+                            android:layout_marginEnd="8dp"
                             android:contentDescription="Lokalizacja"
-                            android:tint="@color/text_secondary"
-                            android:layout_marginEnd="8dp" />
+                            android:src="@android:drawable/ic_menu_mylocation"
+                            app:tint="@color/text_secondary" />
 
                         <TextView
                             android:id="@+id/textViewLocation"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:fontFamily="sans-serif"
                             android:text="Brak lokalizacji"
-                            android:textSize="14sp"
                             android:textColor="@color/text_secondary"
-                            android:fontFamily="sans-serif" />
+                            android:textSize="14sp" />
                     </LinearLayout>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
@@ -159,13 +157,16 @@
                 android:id="@+id/cardWeather"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/surface_variant_dark"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
-                app:strokeWidth="0dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/cardTrip">
+                app:layout_constraintTop_toBottomOf="@+id/cardTrip"
+                app:strokeWidth="0dp">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
@@ -177,8 +178,8 @@
                         android:id="@+id/layoutWeatherHeader"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center_vertical"
+                        android:orientation="horizontal"
                         app:layout_constraintEnd_toStartOf="@+id/buttonRefreshWeather"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
@@ -186,19 +187,19 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/ic_menu_view"
+                            android:layout_marginEnd="12dp"
                             android:contentDescription="Pogoda"
-                            android:tint="@color/accent_blue"
-                            android:layout_marginEnd="12dp" />
+                            android:src="@android:drawable/ic_menu_view"
+                            app:tint="@color/accent_blue" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
                             android:text="Pogoda"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
                             android:textColor="@color/text_primary"
-                            android:fontFamily="sans-serif-medium" />
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
 
                     <!-- Refresh Button -->
@@ -207,11 +208,11 @@
                         style="@style/Widget.Material3.Button.TonalButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Odśwież"
                         android:enabled="false"
                         android:minWidth="0dp"
                         android:paddingStart="16dp"
                         android:paddingEnd="16dp"
+                        android:text="Odśwież"
                         app:icon="@android:drawable/ic_menu_rotate"
                         app:iconGravity="textStart"
                         app:iconPadding="6dp"
@@ -224,9 +225,9 @@
                         android:id="@+id/layoutWeatherInfo"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
                         android:layout_marginTop="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/layoutWeatherHeader">
@@ -235,10 +236,10 @@
                             android:id="@+id/imageViewWeatherIcon"
                             android:layout_width="48dp"
                             android:layout_height="48dp"
-                            android:src="@android:drawable/ic_menu_view"
-                            android:contentDescription="Ikona pogody"
-                            android:tint="@color/accent_blue"
                             android:layout_marginEnd="16dp"
+                            android:contentDescription="Ikona pogody"
+                            android:src="@android:drawable/ic_menu_view"
+                            android:tint="@color/accent_blue"
                             android:visibility="gone" />
 
                         <LinearLayout
@@ -251,20 +252,20 @@
                                 android:id="@+id/textViewWeather"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
                                 android:text="Brak danych pogodowych"
-                                android:textSize="18sp"
-                                android:textStyle="bold"
                                 android:textColor="@color/text_primary"
-                                android:fontFamily="sans-serif-medium" />
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
 
                             <TextView
                                 android:id="@+id/textViewWeatherDescription"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text=""
-                                android:textSize="14sp"
-                                android:textColor="@color/text_secondary"
                                 android:layout_marginTop="4dp"
+                                android:text=""
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp"
                                 android:visibility="gone" />
                         </LinearLayout>
                     </LinearLayout>
@@ -274,10 +275,10 @@
                         android:id="@+id/textViewWeatherLastUpdate"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text=""
-                        android:textSize="12sp"
-                        android:textColor="@color/text_hint"
                         android:layout_marginTop="12dp"
+                        android:text=""
+                        android:textColor="@color/text_hint"
+                        android:textSize="12sp"
                         android:visibility="gone"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -288,7 +289,6 @@
             </com.google.android.material.card.MaterialCardView>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

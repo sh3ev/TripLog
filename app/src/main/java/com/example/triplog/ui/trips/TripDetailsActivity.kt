@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
 import android.content.Intent
 import com.example.triplog.R
 import com.example.triplog.data.AppDatabase
@@ -36,6 +37,7 @@ class TripDetailsActivity : AppCompatActivity() {
     private var tripId: Long = -1
     private var lastWeatherUpdateTime: Long = 0
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    private lateinit var imageGalleryAdapter: ImageGalleryAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,8 +55,36 @@ class TripDetailsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Szczegóły podróży"
 
+        setupImageGallery()
         loadTripDetails()
+        loadTripImages()
         observeWeather()
+    }
+
+    private fun setupImageGallery() {
+        imageGalleryAdapter = ImageGalleryAdapter { position, images ->
+            openFullscreenImage(position)
+        }
+        binding.recyclerViewImages.apply {
+            adapter = imageGalleryAdapter
+            layoutManager = LinearLayoutManager(this@TripDetailsActivity, LinearLayoutManager.HORIZONTAL, false)
+        }
+    }
+
+    private fun loadTripImages() {
+        lifecycleScope.launch {
+            database.tripImageDao().getImagesByTripId(tripId).collect { images ->
+                imageGalleryAdapter.submitList(images)
+                binding.recyclerViewImages.visibility = if (images.isEmpty()) View.GONE else View.VISIBLE
+            }
+        }
+    }
+
+    private fun openFullscreenImage(position: Int) {
+        val intent = Intent(this, FullscreenImageActivity::class.java)
+        intent.putExtra("TRIP_ID", tripId)
+        intent.putExtra("POSITION", position)
+        startActivity(intent)
     }
 
     private fun loadTripDetails() {
@@ -74,18 +104,6 @@ class TripDetailsActivity : AppCompatActivity() {
                     binding.textViewTitle.text = trip.title
                     binding.textViewDescription.text = trip.description
                     binding.textViewDate.text = trip.date
-
-                    if (!trip.imagePath.isNullOrEmpty()) {
-                        try {
-                            val file = File(trip.imagePath)
-                            if (file.exists()) {
-                                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                                binding.imageViewTrip.setImageBitmap(bitmap)
-                            }
-                        } catch (e: Exception) {
-                            // Ignore image loading errors
-                        }
-                    }
 
                     if (trip.latitude != null && trip.longitude != null) {
                         val lat = trip.latitude!!

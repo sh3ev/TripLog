@@ -7,14 +7,21 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.triplog.R
+import com.example.triplog.data.AppDatabase
 import com.example.triplog.data.entities.TripEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class TripAdapter(
+    private val database: AppDatabase,
+    private val lifecycleScope: LifecycleCoroutineScope,
     private val onItemClick: (TripEntity) -> Unit,
     private val onItemLongClick: (TripEntity) -> Unit,
     private val onEditClick: (TripEntity) -> Unit,
@@ -42,17 +49,20 @@ class TripAdapter(
             textViewTitle.text = trip.title
             textViewDate.text = trip.date
 
-            // Load image if exists
-            if (!trip.imagePath.isNullOrEmpty()) {
-                val file = File(trip.imagePath)
-                if (file.exists()) {
-                    val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                    imageView.setImageBitmap(bitmap)
-                } else {
-                    imageView.setImageResource(R.drawable.ic_launcher_foreground)
+            // Load first image from trip_images table
+            imageView.setImageResource(R.drawable.ic_launcher_foreground) // Default
+            lifecycleScope.launch {
+                val firstImage = withContext(Dispatchers.IO) {
+                    database.tripImageDao().getImagesByTripIdSync(trip.id).firstOrNull()
                 }
-            } else {
-                imageView.setImageResource(R.drawable.ic_launcher_foreground)
+                
+                firstImage?.let {
+                    val file = File(it.imagePath)
+                    if (file.exists()) {
+                        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                        imageView.setImageBitmap(bitmap)
+                    }
+                }
             }
 
             itemView.setOnClickListener {

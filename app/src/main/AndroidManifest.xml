@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
@@ -18,32 +19,37 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TripLog"
-        android:usesCleartextTraffic="true">
-        
+        android:usesCleartextTraffic="true" >
+        <activity
+            android:name=".ScrollingActivity"
+            android:exported="false"
+            android:label="@string/title_activity_scrolling"
+            android:theme="@style/Theme.TripLog.NoActionBar" />
         <activity
             android:name=".ui.login.LoginActivity"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
         <activity
             android:name=".ui.register.RegisterActivity"
             android:exported="false" />
-        
         <activity
             android:name=".ui.main.MainActivity"
             android:exported="false" />
-        
         <activity
             android:name=".ui.trips.AddTripActivity"
             android:exported="false" />
-        
         <activity
             android:name=".ui.trips.TripDetailsActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.trips.FullscreenImageActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripLog.Fullscreen" />
     </application>
 
 </manifest>

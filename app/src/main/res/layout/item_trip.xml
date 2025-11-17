@@ -10,27 +10,28 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/background_main"
         android:padding="16dp">
 
         <ImageView
             android:id="@+id/imageViewThumbnail"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:scaleType="centerCrop"
             android:contentDescription="Miniatura podróży"
+            android:scaleType="centerCrop"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/textViewTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:text="Tytuł podróży"
+            android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginStart="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/imageViewThumbnail"
             app:layout_constraintTop_toTopOf="parent" />
@@ -39,10 +40,10 @@
             android:id="@+id/textViewDate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="2024-01-01"
-            android:textSize="14sp"
-            android:textColor="@color/text_secondary"
             android:layout_marginTop="8dp"
+            android:text="2024-01-01"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
             app:layout_constraintEnd_toStartOf="@+id/imageButtonEdit"
             app:layout_constraintStart_toEndOf="@+id/imageViewThumbnail"
             app:layout_constraintTop_toBottomOf="@+id/textViewTitle" />
@@ -51,28 +52,28 @@
             android:id="@+id/imageButtonEdit"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@android:drawable/ic_menu_edit"
+            android:layout_marginEnd="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Edytuj"
             android:padding="8dp"
-            android:layout_marginEnd="8dp"
+            android:src="@android:drawable/ic_menu_edit"
             android:tint="@color/accent_blue"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/imageButtonDelete"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
             android:id="@+id/imageButtonDelete"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@android:drawable/ic_menu_delete"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Usuń"
             android:padding="8dp"
+            android:src="@android:drawable/ic_menu_delete"
             android:tint="@color/accent_green"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

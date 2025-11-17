@@ -4,102 +4,108 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark"
+    android:background="@drawable/background_main"
     tools:context=".ui.trips.AddTripActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:background="@color/background_dark">
+        android:background="@drawable/background_main"
+        android:padding="16dp">
 
-        <EditText
-            android:id="@+id/editTextTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="Tytuł podróży"
-            android:inputType="text"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="70dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
 
-        <EditText
-            android:id="@+id/editTextDescription"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="Opis"
-            android:inputType="textMultiLine"
-            android:minLines="3"
-            android:layout_marginTop="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editTextTitle" />
+            <EditText
+                android:id="@+id/editTextTitle"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/background_edittext"
+                android:hint="Tytuł podróży"
+                android:inputType="text"
+                android:padding="16sp" />
 
-        <EditText
-            android:id="@+id/editTextDate"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="Data (yyyy-MM-dd)"
-            android:inputType="date"
-            android:layout_marginTop="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editTextDescription" />
+            <EditText
+                android:id="@+id/editTextDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/background_edittext"
+                android:hint="Opis"
+                android:inputType="textMultiLine"
+                android:minLines="3"
+                android:padding="16sp" />
 
-        <Button
-            android:id="@+id/buttonSelectImage"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Wybierz zdjęcie"
-            android:layout_marginTop="16dp"
-            android:backgroundTint="@color/accent_blue"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editTextDate" />
+            <EditText
+                android:id="@+id/editTextDate"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/background_edittext"
+                android:padding="16sp"
+                android:hint="Data (yyyy-MM-dd)"
+                android:inputType="date" />
 
-        <ImageView
-            android:id="@+id/imageViewPreview"
-            android:layout_width="0dp"
-            android:layout_height="200dp"
-            android:scaleType="centerCrop"
-            android:contentDescription="Podgląd zdjęcia"
-            android:layout_marginTop="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/buttonSelectImage" />
+            <Button
+                android:id="@+id/buttonSelectImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:backgroundTint="@color/accent_blue"
+                android:text="Dodaj zdjęcia" />
 
-        <Button
-            android:id="@+id/buttonGetLocation"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Pobierz lokalizację"
-            android:layout_marginTop="16dp"
-            android:backgroundTint="@color/accent_blue"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageViewPreview" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewSelectedImages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal" />
 
-        <TextView
-            android:id="@+id/textViewLocation"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Brak lokalizacji"
-            android:textColor="@color/text_secondary"
-            android:layout_marginTop="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/buttonGetLocation" />
+            <Button
+                android:id="@+id/buttonGetLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:backgroundTint="@color/accent_blue"
+                android:text="Pobierz lokalizację" />
 
-        <Button
-            android:id="@+id/buttonSave"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Zapisz"
-            android:layout_marginTop="24dp"
-            android:backgroundTint="@color/accent_green"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textViewLocation" />
+            <TextView
+                android:id="@+id/textViewLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_edittext"
+                android:padding="16sp"
+                android:textSize="16sp"
+                android:text="Brak lokalizacji"
+                android:textColor="@color/text_secondary" />
+
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/buttonSave"
+                style="android:style/Widget.Button"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+
+                android:layout_gravity="center"
+                android:layout_margin="32dp"
+                android:background="@drawable/background_btn"
+                android:text="Zapisz"
+                android:textColor="#ffffff"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
