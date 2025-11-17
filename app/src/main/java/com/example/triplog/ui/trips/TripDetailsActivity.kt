@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.webkit.WebView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -113,9 +114,16 @@ class TripDetailsActivity : AppCompatActivity() {
                             viewModel.fetchWeather(lat, lon)
                         }
                         binding.buttonRefreshWeather.isEnabled = true
+                        
+                        // Show map
+                        showMap(lat, lon)
                     } else {
                         binding.textViewLocation.text = "Brak lokalizacji"
                         binding.buttonRefreshWeather.isEnabled = false
+                        
+                        // Hide map, show no location message
+                        binding.webViewMap.visibility = View.GONE
+                        binding.textViewNoLocation.visibility = View.VISIBLE
                     }
 
                     if (!trip.weatherSummary.isNullOrEmpty()) {
@@ -198,6 +206,44 @@ class TripDetailsActivity : AppCompatActivity() {
             binding.textViewWeatherLastUpdate.text = "Ostatnia aktualizacja: $timeString"
             binding.textViewWeatherLastUpdate.visibility = View.VISIBLE
         }
+    }
+
+    private fun showMap(latitude: Double, longitude: Double) {
+        binding.webViewMap.visibility = View.VISIBLE
+        binding.textViewNoLocation.visibility = View.GONE
+        
+        val webView = binding.webViewMap
+        webView.settings.javaScriptEnabled = true
+        webView.settings.domStorageEnabled = true
+        
+        // HTML with OpenStreetMap using Leaflet
+        val html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                <style>
+                    body { margin: 0; padding: 0; }
+                    #map { height: 250px; width: 100%; }
+                </style>
+            </head>
+            <body>
+                <div id="map"></div>
+                <script>
+                    var map = L.map('map').setView([$latitude, $longitude], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(map);
+                    var marker = L.marker([$latitude, $longitude]).addTo(map);
+                    marker.bindPopup("<b>Lokalizacja podróży</b>").openPopup();
+                </script>
+            </body>
+            </html>
+        """.trimIndent()
+        
+        webView.loadDataWithBaseURL("https://example.com", html, "text/html", "UTF-8", null)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
