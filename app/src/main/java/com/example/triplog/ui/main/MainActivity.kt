@@ -2,6 +2,8 @@ package com.example.triplog.ui.main
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -21,6 +23,8 @@ import com.example.triplog.ui.trips.TripAdapter
 import com.example.triplog.ui.trips.TripDetailsActivity
 import com.example.triplog.utils.SharedPreferencesHelper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -29,6 +33,7 @@ class MainActivity : AppCompatActivity() {
     private val database by lazy { AppDatabase.getDatabase(this) }
     private var currentUserEmail: String? = null
     private lateinit var tripAdapter: TripAdapter
+    private var searchJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupRecyclerView()
+        setupSearchBar()
 
         // Fetch user and set the welcome message
         lifecycleScope.launch {
@@ -64,9 +70,60 @@ class MainActivity : AppCompatActivity() {
         loadTrips()
     }
 
+    private fun setupSearchBar() {
+        // Clear button functionality
+        binding.editTextText.setOnTouchListener { v, event ->
+            val drawableEnd = 2 // Right drawable index
+            if (event.rawX >= (binding.editTextText.right - binding.editTextText.compoundDrawables[drawableEnd].bounds.width())) {
+                binding.editTextText.text.clear()
+                return@setOnTouchListener true
+            }
+            false
+        }
+
+        // Search functionality with debounce
+        binding.editTextText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                searchJob?.cancel()
+                searchJob = lifecycleScope.launch {
+                    delay(300) // Debounce delay
+                    searchTrips(s.toString())
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+    }
+
+    private fun searchTrips(query: String) {
+        currentUserEmail?.let { email ->
+            lifecycleScope.launch {
+                if (query.isBlank()) {
+                    // If search is empty, load all trips
+                    database.tripDao().getTripsByUser(email).collect { trips ->
+                        tripAdapter.submitList(trips)
+                    }
+                } else {
+                    // Search trips by query
+                    database.tripDao().searchTrips(email, query).collect { trips ->
+                        tripAdapter.submitList(trips)
+                    }
+                }
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
-        loadTrips()
+        // Refresh with current search query
+        val currentQuery = binding.editTextText.text.toString()
+        if (currentQuery.isBlank()) {
+            loadTrips()
+        } else {
+            searchTrips(currentQuery)
+        }
     }
 
     private fun setupRecyclerView() {
