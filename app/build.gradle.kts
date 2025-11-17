@@ -4,6 +4,18 @@ plugins {
     kotlin("kapt")
 }
 
+// Load local.properties
+fun getLocalProperty(key: String): String? {
+    val localPropertiesFile = rootProject.file("local.properties")
+    return if (localPropertiesFile.exists()) {
+        val properties = localPropertiesFile.readText()
+        val regex = Regex("""${key}=(.+)""")
+        regex.find(properties)?.groupValues?.get(1)?.trim()
+    } else {
+        null
+    }
+}
+
 android {
     namespace = "com.example.triplog"
     compileSdk = 36
@@ -19,7 +31,7 @@ android {
         
         // API Keys - ustaw w local.properties jako OPENWEATHER_API_KEY=YOUR_KEY
         // Lub użyj zmiennej środowiskowej OPENWEATHER_API_KEY
-        val apiKey = project.findProperty("OPENWEATHER_API_KEY") as String? 
+        val apiKey = getLocalProperty("OPENWEATHER_API_KEY")
             ?: System.getenv("OPENWEATHER_API_KEY") 
             ?: "YOUR_API_KEY_HERE"
         buildConfigField("String", "OPENWEATHER_API_KEY", "\"$apiKey\"")
