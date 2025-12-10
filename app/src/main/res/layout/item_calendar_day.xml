@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:layout_gravity="center"
-        android:background="#E8E8E8"
+        android:background="#33FFFFFF"
         android:visibility="gone" />
 
     <!-- Tło dla wybranego dnia -->
@@ -31,6 +31,6 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:textSize="14sp"
-        android:textColor="#222222" />
+        android:textColor="@color/text_primary" />
 
 </FrameLayout>

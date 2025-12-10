@@ -12,6 +12,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.PagerSnapHelper
+import androidx.recyclerview.widget.RecyclerView
 import android.content.Intent
 import com.example.triplog.R
 import com.example.triplog.config.ApiConfig
@@ -42,6 +44,7 @@ class TripDetailsActivity : AppCompatActivity() {
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     private lateinit var imageGalleryAdapter: ImageGalleryAdapter
     private lateinit var weatherForecastAdapter: WeatherDayAdapter
+    private var totalImages = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,9 +58,8 @@ class TripDetailsActivity : AppCompatActivity() {
             return
         }
 
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Szczegóły podróży"
+        // Przycisk wstecz
+        binding.buttonBack.setOnClickListener { finish() }
 
         setupImageGallery()
         setupWeatherForecast()
@@ -69,10 +71,29 @@ class TripDetailsActivity : AppCompatActivity() {
         imageGalleryAdapter = ImageGalleryAdapter { position, images ->
             openFullscreenImage(position)
         }
+        
+        val layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.recyclerViewImages.apply {
             adapter = imageGalleryAdapter
-            layoutManager = LinearLayoutManager(this@TripDetailsActivity, LinearLayoutManager.HORIZONTAL, false)
+            this.layoutManager = layoutManager
         }
+        
+        // Snap scrolling - zatrzymuje się na każdym zdjęciu
+        val snapHelper = PagerSnapHelper()
+        snapHelper.attachToRecyclerView(binding.recyclerViewImages)
+        
+        // Aktualizuj licznik zdjęć przy scrollowaniu
+        binding.recyclerViewImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    val position = layoutManager.findFirstCompletelyVisibleItemPosition()
+                    if (position != RecyclerView.NO_POSITION && totalImages > 0) {
+                        binding.textViewImageCounter.text = "${position + 1} / $totalImages"
+                    }
+                }
+            }
+        })
     }
     
     private fun setupWeatherForecast() {
@@ -87,8 +108,16 @@ class TripDetailsActivity : AppCompatActivity() {
     private fun loadTripImages() {
         lifecycleScope.launch {
             database.tripImageDao().getImagesByTripId(tripId).collect { images ->
+                totalImages = images.size
                 imageGalleryAdapter.submitList(images)
-                binding.recyclerViewImages.visibility = if (images.isEmpty()) View.GONE else View.VISIBLE
+                
+                if (images.isEmpty()) {
+                    binding.layoutImages.visibility = View.GONE
+                } else {
+                    binding.layoutImages.visibility = View.VISIBLE
+                    binding.layoutImageIndicator.visibility = if (images.size > 1) View.VISIBLE else View.GONE
+                    binding.textViewImageCounter.text = "1 / ${images.size}"
+                }
             }
         }
     }
@@ -124,12 +153,19 @@ class TripDetailsActivity : AppCompatActivity() {
                         val lat = trip.latitude!!
                         val lon = trip.longitude!!
                         
-                        // Wyświetl nazwę lokalizacji lub współrzędne
+                        // Wyświetl nazwę lokalizacji
                         if (!trip.locationName.isNullOrEmpty()) {
-                            binding.textViewLocation.text = trip.locationName
+                            // Wyświetl tylko miasto (pierwsza część przed przecinkiem)
+                            val cityName = trip.locationName!!.split(",").firstOrNull()?.trim() ?: trip.locationName
+                            binding.textViewLocation.text = cityName
                         } else {
                             binding.textViewLocation.text = String.format(Locale.getDefault(), "%.4f°N, %.4f°E", lat, lon)
                         }
+                        
+                        // Pokaż sekcję lokalizacji i mapę
+                        binding.layoutDestination.visibility = View.VISIBLE
+                        binding.cardMap.visibility = View.VISIBLE
+                        binding.textViewNoLocation.visibility = View.GONE
                         
                         binding.buttonRefreshWeather.setOnClickListener {
                             loadWeatherForecast(lat, lon, trip.date, trip.endDate)
@@ -142,14 +178,14 @@ class TripDetailsActivity : AppCompatActivity() {
                         // Załaduj prognozę pogody
                         loadWeatherForecast(lat, lon, trip.date, trip.endDate)
                     } else {
-                        binding.textViewLocation.text = "Brak lokalizacji"
+                        // Ukryj sekcję lokalizacji i mapę
+                        binding.layoutDestination.visibility = View.GONE
+                        binding.cardMap.visibility = View.GONE
+                        binding.textViewNoLocation.visibility = View.VISIBLE
+                        
                         binding.buttonRefreshWeather.isEnabled = false
                         binding.textViewNoWeather.visibility = View.VISIBLE
                         binding.recyclerViewWeatherForecast.visibility = View.GONE
-                        
-                        // Hide map, show no location message
-                        binding.webViewMap.visibility = View.GONE
-                        binding.textViewNoLocation.visibility = View.VISIBLE
                     }
                 } catch (e: Exception) {
                     Toast.makeText(this@TripDetailsActivity, "Błąd wyświetlania danych: ${e.message}", Toast.LENGTH_SHORT).show()

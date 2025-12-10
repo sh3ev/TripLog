@@ -45,6 +45,7 @@
     <color name="text_gray">#717171</color>
     <color name="text_light_gray">#999999</color>
     <color name="divider_gray">#707070</color>
+    <color name="divider_dark">#FF3D3D3D</color>
     <color name="login_background">#EDEDF7</color>
 
 </resources>

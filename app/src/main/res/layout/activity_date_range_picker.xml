@@ -1,109 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF"
-    android:fitsSystemWindows="true"
+    android:background="@drawable/background_main"
     tools:context=".ui.trips.DateRangePickerActivity">
 
-    <!-- Header z lokalizacją -->
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="20dp"
         android:paddingTop="48dp"
-        android:paddingBottom="16dp">
+        android:paddingBottom="8dp">
+
+        <ImageButton
+            android:id="@+id/imageViewClose"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_clear"
+            android:contentDescription="Zamknij"
+            app:tint="@color/text_primary" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:layout_marginStart="8dp"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Gdzie"
-                android:textColor="#717171"
+                android:text="Jadę do"
+                android:textColor="@color/text_hint"
                 android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/textViewLocation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#222222"
-                android:textSize="16sp"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/imageViewClose"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="8dp"
-            android:src="@drawable/ic_clear"
-            android:background="@drawable/background_circle_button"
-            android:contentDescription="Zamknij" />
-
     </LinearLayout>
 
+    <!-- Tytuł -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:text="Kiedy jedziesz?"
+        android:textColor="@color/text_primary"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <!-- Wybrany zakres dat -->
+    <TextView
+        android:id="@+id/textViewSelectedRange"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="4dp"
+        android:text="Wybierz daty podróży"
+        android:textColor="@color/text_secondary"
+        android:textSize="15sp" />
+
     <!-- Karta z kalendarzem -->
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginBottom="8dp"
-        app:cardCornerRadius="24dp"
+        app:cardCornerRadius="20dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="#F7F7F7"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+        app:cardBackgroundColor="@color/surface_variant_dark">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="20dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Kiedy?"
-                android:textColor="#222222"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <!-- Wybrany zakres dat -->
-            <TextView
-                android:id="@+id/textViewSelectedRange"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Wybierz daty podróży"
-                android:textColor="#717171"
-                android:textSize="14sp" />
+            android:padding="16dp">
 
             <!-- Dni tygodnia -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
                 android:orientation="horizontal">
 
-                <TextView style="@style/DayOfWeekHeader" android:text="Nd" />
-                <TextView style="@style/DayOfWeekHeader" android:text="Pn" />
-                <TextView style="@style/DayOfWeekHeader" android:text="Wt" />
-                <TextView style="@style/DayOfWeekHeader" android:text="Śr" />
-                <TextView style="@style/DayOfWeekHeader" android:text="Cz" />
-                <TextView style="@style/DayOfWeekHeader" android:text="Pt" />
-                <TextView style="@style/DayOfWeekHeader" android:text="Sb" />
+                <TextView style="@style/DayOfWeekHeaderDark" android:text="Nd" />
+                <TextView style="@style/DayOfWeekHeaderDark" android:text="Pn" />
+                <TextView style="@style/DayOfWeekHeaderDark" android:text="Wt" />
+                <TextView style="@style/DayOfWeekHeaderDark" android:text="Śr" />
+                <TextView style="@style/DayOfWeekHeaderDark" android:text="Cz" />
+                <TextView style="@style/DayOfWeekHeaderDark" android:text="Pt" />
+                <TextView style="@style/DayOfWeekHeaderDark" android:text="Sb" />
 
             </LinearLayout>
 
@@ -119,16 +124,16 @@
 
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
-    <!-- Dolny pasek z przyciskami -->
+    <!-- Dolny pasek -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
         android:paddingTop="12dp"
         android:paddingBottom="24dp">
 
@@ -137,9 +142,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Wyczyść"
-            android:textColor="#222222"
-            android:textSize="16sp"
-            android:textStyle="bold"
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp"
             android:padding="8dp"
             android:clickable="true"
             android:focusable="true" />
@@ -149,15 +153,17 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonNext"
+            style="@style/Widget.Material3.Button"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
-            android:minWidth="120dp"
-            android:text="Dalej"
-            android:textColor="#FFFFFF"
-            android:background="@drawable/background_button_black"
-            android:enabled="false" />
+            android:minWidth="140dp"
+            android:text="Sprawdź pogodę"
+            android:textAllCaps="false"
+            android:enabled="false"
+            app:backgroundTint="@color/accent_green"
+            app:cornerRadius="24dp" />
 
     </LinearLayout>
 

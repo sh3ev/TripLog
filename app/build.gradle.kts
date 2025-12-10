@@ -83,6 +83,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     
+    // ExifInterface for image rotation
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
+    
     // Retrofit
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)

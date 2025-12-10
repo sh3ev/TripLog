@@ -7,405 +7,345 @@
     android:background="@drawable/background_main"
     tools:context=".ui.trips.TripDetailsActivity">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:fillViewport="true">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="172dp"
-            android:background="@drawable/top_background" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/background_main"
-            android:fillViewport="false"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            <!-- Header z przyciskiem wstecz -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="8dp"
+                android:paddingTop="48dp"
+                android:paddingEnd="16dp">
 
+                <ImageButton
+                    android:id="@+id/buttonBack"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Wstecz"
+                    android:src="@drawable/ic_arrow_back"
+                    app:tint="@color/text_primary" />
+
+            </LinearLayout>
+
+            <!-- Tytuł i data -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="1dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
                 android:paddingBottom="16dp">
 
-            <!-- Card: Trip Information -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardTrip"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="8dp"
-                app:cardBackgroundColor="@color/secondary_dark"
-                app:cardCornerRadius="16dp"
-                app:strokeWidth="0dp">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <TextView
+                    android:id="@+id/textViewTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="20dp">
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Tytuł podróży"
+                    android:textColor="@color/text_primary"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
 
-                    <!-- Title -->
+                <TextView
+                    android:id="@+id/textViewDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:drawableStart="@android:drawable/ic_menu_my_calendar"
+                    android:drawablePadding="8dp"
+                    android:drawableTint="@color/text_hint"
+                    android:fontFamily="sans-serif"
+                    android:text="10 gru - 12 gru 2025"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
+            <!-- Galeria zdjęć - pełna szerokość, snap scrolling -->
+            <FrameLayout
+                android:id="@+id/layoutImages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerViewImages"
+                    android:layout_width="match_parent"
+                    android:layout_height="280dp"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp" />
+
+                <!-- Wskaźnik zdjęć -->
+                <LinearLayout
+                    android:id="@+id/layoutImageIndicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/background_image_indicator"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:visibility="gone">
+
                     <TextView
-                        android:id="@+id/textViewTitle"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="Tytuł podróży"
-                        android:textColor="@color/text_primary"
-                        android:textSize="24sp"
-                        android:textStyle="bold"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <!-- Date with icon -->
-                    <LinearLayout
-                        android:id="@+id/layoutDate"
+                        android:id="@+id/textViewImageCounter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/textViewTitle">
+                        android:text="1 / 5"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp" />
 
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_marginEnd="8dp"
-                            android:contentDescription="Data"
-                            android:src="@android:drawable/ic_menu_my_calendar"
-                            app:tint="@color/text_secondary" />
+                </LinearLayout>
 
-                        <TextView
-                            android:id="@+id/textViewDate"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif"
-                            android:text="10 gru - 12 gru 2025"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
-                    </LinearLayout>
+            </FrameLayout>
 
-                    <!-- Trip Images Gallery -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerViewImages"
-                        android:layout_width="0dp"
-                        android:layout_height="200dp"
-                        android:layout_marginTop="16dp"
-                        android:clipToPadding="false"
-                        android:orientation="horizontal"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/layoutDate" />
+            <!-- Sekcja: Opis -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingTop="20dp"
+                android:paddingEnd="20dp">
 
-                    <!-- Description -->
+                <TextView
+                    android:id="@+id/textViewDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:lineSpacingExtra="6dp"
+                    android:text="Opis podróży"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+            </LinearLayout>
+
+            <!-- Sekcja: Jadę do -->
+            <LinearLayout
+                android:id="@+id/layoutDestination"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/background_section"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/ic_location_pin"
+                    app:tint="@color/accent_green" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
                     <TextView
-                        android:id="@+id/textViewDescription"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:lineSpacingExtra="4dp"
-                        android:text="Opis podróży"
+                        android:text="Jadę do"
+                        android:textColor="@color/text_hint"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/textViewLocation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Kraków, Polska"
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewImages" />
+                        android:textStyle="bold" />
 
-                    <!-- Location with icon -->
-                    <LinearLayout
-                        android:id="@+id/layoutLocation"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/textViewDescription">
+                </LinearLayout>
 
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_marginEnd="8dp"
-                            android:contentDescription="Lokalizacja"
-                            android:src="@android:drawable/ic_menu_mylocation"
-                            app:tint="@color/text_secondary" />
+            </LinearLayout>
 
-                        <TextView
-                            android:id="@+id/textViewLocation"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:fontFamily="sans-serif"
-                            android:text="Brak lokalizacji"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
-                    </LinearLayout>
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card: Map -->
+            <!-- Sekcja: Mapa -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardMap"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="8dp"
-                app:cardBackgroundColor="@color/surface_variant_dark"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="20dp"
+                app:cardBackgroundColor="@android:color/transparent"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:strokeWidth="0dp">
+                app:cardElevation="0dp"
+                app:strokeColor="@color/divider_dark"
+                app:strokeWidth="1dp">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <WebView
+                    android:id="@+id/webViewMap"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="20dp">
-
-                    <!-- Map Header -->
-                    <LinearLayout
-                        android:id="@+id/layoutMapHeader"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_marginEnd="12dp"
-                            android:contentDescription="Mapa"
-                            android:src="@android:drawable/ic_menu_mylocation"
-                            app:tint="@color/accent_green" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="Lokalizacja"
-                            android:textColor="@color/text_primary"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Map WebView -->
-                    <WebView
-                        android:id="@+id/webViewMap"
-                        android:layout_width="0dp"
-                        android:layout_height="250dp"
-                        android:layout_marginTop="16dp"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/layoutMapHeader" />
-
-                    <TextView
-                        android:id="@+id/textViewNoLocation"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:text="Brak danych o lokalizacji"
-                        android:textAlignment="center"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="16sp"
-                        android:visibility="gone"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/layoutMapHeader" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_height="200dp" />
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card: Weather Information -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardWeather"
+            <TextView
+                android:id="@+id/textViewNoLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/surface_variant_dark"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:strokeWidth="0dp">
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="20dp"
+                android:gravity="center"
+                android:padding="24dp"
+                android:text="Brak danych o lokalizacji"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:visibility="gone" />
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+            <!-- Sekcja: Prognoza pogody -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp">
+
+                <!-- Nagłówek pogody -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="20dp">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                    <!-- Weather Header Row -->
-                    <LinearLayout
-                        android:id="@+id/layoutWeatherHeader"
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="12dp"
+                        android:src="@android:drawable/ic_menu_view"
+                        app:tint="@color/accent_blue" />
+
+                    <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        app:layout_constraintEnd_toStartOf="@+id/buttonRefreshWeather"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Prognoza pogody"
+                        android:textColor="@color/text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_marginEnd="12dp"
-                            android:contentDescription="Pogoda"
-                            android:src="@android:drawable/ic_menu_view"
-                            app:tint="@color/accent_blue" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="Prognoza pogody"
-                            android:textColor="@color/text_primary"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Refresh Button -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/buttonRefreshWeather"
-                        style="@style/Widget.Material3.Button.TonalButton"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:enabled="false"
                         android:minWidth="0dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
+                        android:minHeight="0dp"
                         android:text="Odśwież"
+                        android:textSize="13sp"
                         app:icon="@android:drawable/ic_menu_rotate"
                         app:iconGravity="textStart"
-                        app:iconPadding="6dp"
-                        app:iconSize="18dp"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:iconPadding="4dp"
+                        app:iconSize="16dp" />
 
-                    <!-- Weather Forecast RecyclerView -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerViewWeatherForecast"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:nestedScrollingEnabled="false"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/layoutWeatherHeader" />
+                </LinearLayout>
 
-                    <!-- Loading indicator -->
-                    <ProgressBar
-                        android:id="@+id/progressBarWeather"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:visibility="gone"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/layoutWeatherHeader" />
+                <!-- ProgressBar -->
+                <ProgressBar
+                    android:id="@+id/progressBarWeather"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:visibility="gone" />
 
-                    <!-- Legacy weather views (hidden, for compatibility) -->
-                    <LinearLayout
-                        android:id="@+id/layoutWeatherInfo"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:visibility="gone"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/recyclerViewWeatherForecast">
+                <!-- Lista pogody -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerViewWeatherForecast"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:nestedScrollingEnabled="false" />
 
-                        <ImageView
-                            android:id="@+id/imageViewWeatherIcon"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:layout_marginEnd="16dp"
-                            android:contentDescription="Ikona pogody"
-                            android:src="@android:drawable/ic_menu_view"
-                            android:tint="@color/accent_blue"
-                            android:visibility="gone" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/textViewWeather"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-medium"
-                                android:text="Brak danych pogodowych"
-                                android:textColor="@color/text_primary"
-                                android:textSize="18sp"
-                                android:textStyle="bold"
-                                android:visibility="gone" />
-
-                            <TextView
-                                android:id="@+id/textViewWeatherDescription"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text=""
-                                android:textColor="@color/text_secondary"
-                                android:textSize="14sp"
-                                android:visibility="gone" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Last Update Info -->
-                    <TextView
-                        android:id="@+id/textViewWeatherLastUpdate"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text=""
-                        android:textColor="@color/text_hint"
-                        android:textSize="12sp"
-                        android:visibility="gone"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/layoutWeatherInfo" />
-
-                    <!-- No weather message -->
-                    <TextView
-                        android:id="@+id/textViewNoWeather"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:gravity="center"
-                        android:text="Brak prognozy pogody dla tej podróży"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp"
-                        android:visibility="gone"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/layoutWeatherHeader" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-            </com.google.android.material.card.MaterialCardView>
+                <!-- Brak pogody -->
+                <TextView
+                    android:id="@+id/textViewNoWeather"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center"
+                    android:padding="16dp"
+                    android:text="Brak prognozy pogody"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
 
             </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
-    </LinearLayout>
+
+            <!-- Legacy views (ukryte, dla kompatybilności) -->
+            <LinearLayout
+                android:id="@+id/layoutWeatherInfo"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/imageViewWeatherIcon"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/textViewWeather"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/textViewWeatherDescription"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/textViewWeatherLastUpdate"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+            <!-- Padding na dole -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="32dp" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Ukryty toolbar dla kompatybilności -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

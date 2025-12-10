@@ -10,10 +10,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.triplog.config.ApiConfig
 import com.example.triplog.databinding.ActivityLocationSearchBinding
-import com.example.triplog.network.GeocodingResponse
+import com.example.triplog.network.PhotonFeature
 import com.example.triplog.network.RetrofitInstance
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -27,7 +27,7 @@ class LocationSearchActivity : AppCompatActivity() {
     }
     
     private lateinit var binding: ActivityLocationSearchBinding
-    private lateinit var adapter: LocationSuggestionAdapter
+    private lateinit var adapter: PhotonLocationAdapter
     private var searchJob: Job? = null
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,7 +44,7 @@ class LocationSearchActivity : AppCompatActivity() {
     }
     
     private fun setupRecyclerView() {
-        adapter = LocationSuggestionAdapter { location ->
+        adapter = PhotonLocationAdapter { location ->
             selectLocation(location)
         }
         binding.recyclerViewSuggestions.layoutManager = LinearLayoutManager(this)
@@ -65,7 +65,7 @@ class LocationSearchActivity : AppCompatActivity() {
                 searchJob?.cancel()
                 if (query.length >= 2) {
                     searchJob = lifecycleScope.launch {
-                        delay(300) // Krótszy delay dla lepszego UX
+                        delay(400)
                         searchLocations(query)
                     }
                 } else {
@@ -102,25 +102,41 @@ class LocationSearchActivity : AppCompatActivity() {
         showLoading()
         
         try {
-            val results = RetrofitInstance.geocodingApi.getCoordinates(
+            val response = RetrofitInstance.photonApi.search(
                 query = query,
-                limit = 10, // Pobierz więcej wyników do filtrowania
-                apiKey = ApiConfig.OPENWEATHER_API_KEY
+                limit = 10
             )
             
-            // Usuń duplikaty - miejsca z prawie identycznymi współrzędnymi
-            val uniqueResults = results.distinctBy { location ->
-                // Zaokrąglij do 2 miejsc po przecinku (~1km dokładność)
-                val latRounded = (location.lat * 100).toLong()
-                val lonRounded = (location.lon * 100).toLong()
-                "$latRounded,$lonRounded"
-            }.take(5)
+            // Filtruj tylko miejsca (miasta, wsie, POI) - usuń duplikaty
+            val uniqueResults = response.features
+                .filter { feature ->
+                    val type = feature.properties.type
+                    type in listOf("city", "town", "village", "locality", "hamlet", 
+                                   "suburb", "neighbourhood", "district",
+                                   "attraction", "tourism", "amenity", "building")
+                    || feature.properties.osm_key in listOf("place", "tourism", "amenity", "leisure")
+                }
+                .distinctBy { feature ->
+                    "${feature.properties.name},${feature.properties.countrycode}"
+                }
+                .take(6)
             
             if (uniqueResults.isNotEmpty()) {
                 showResults(uniqueResults)
             } else {
-                showNoResults()
+                // Jeśli nie ma wyników po filtrze, pokaż wszystkie
+                val allResults = response.features.distinctBy { 
+                    "${it.properties.name},${it.properties.countrycode}" 
+                }.take(6)
+                
+                if (allResults.isNotEmpty()) {
+                    showResults(allResults)
+                } else {
+                    showNoResults()
+                }
             }
+        } catch (e: CancellationException) {
+            // Ignore - coroutine was cancelled
         } catch (e: Exception) {
             Toast.makeText(this, "Błąd wyszukiwania: ${e.message}", Toast.LENGTH_SHORT).show()
             showEmptyState()
@@ -133,7 +149,7 @@ class LocationSearchActivity : AppCompatActivity() {
         binding.recyclerViewSuggestions.visibility = View.GONE
     }
     
-    private fun showResults(results: List<GeocodingResponse>) {
+    private fun showResults(results: List<PhotonFeature>) {
         binding.progressBar.visibility = View.GONE
         binding.textViewEmpty.visibility = View.GONE
         binding.recyclerViewSuggestions.visibility = View.VISIBLE
@@ -150,73 +166,20 @@ class LocationSearchActivity : AppCompatActivity() {
     
     private fun showEmptyState() {
         binding.progressBar.visibility = View.GONE
-        binding.textViewEmpty.text = "Wpisz nazwę miejsca, aby wyszukać"
-        binding.textViewEmpty.visibility = View.VISIBLE
+        binding.textViewEmpty.visibility = View.GONE
         binding.recyclerViewSuggestions.visibility = View.GONE
         adapter.submitList(emptyList())
     }
     
-    private fun selectLocation(location: GeocodingResponse) {
-        val displayName = location.getPolishDisplayName()
+    private fun selectLocation(location: PhotonFeature) {
+        val displayName = location.properties.getFullDisplayName()
         
         val resultIntent = Intent().apply {
             putExtra(EXTRA_LOCATION_NAME, displayName)
-            putExtra(EXTRA_LATITUDE, location.lat)
-            putExtra(EXTRA_LONGITUDE, location.lon)
+            putExtra(EXTRA_LATITUDE, location.geometry.getLat())
+            putExtra(EXTRA_LONGITUDE, location.geometry.getLon())
         }
         setResult(RESULT_OK, resultIntent)
         finish()
-    }
-    
-    private fun GeocodingResponse.getPolishDisplayName(): String {
-        val localName = local_names?.get("pl") ?: name
-        val polishCountry = getPolishCountryName(country)
-        return buildString {
-            append(localName)
-            state?.let { append(", $it") }
-            append(", $polishCountry")
-        }
-    }
-    
-    private fun getPolishCountryName(countryCode: String): String {
-        return when (countryCode.uppercase()) {
-            "PL" -> "Polska"
-            "DE" -> "Niemcy"
-            "FR" -> "Francja"
-            "ES" -> "Hiszpania"
-            "IT" -> "Włochy"
-            "GB", "UK" -> "Wielka Brytania"
-            "US" -> "Stany Zjednoczone"
-            "CZ" -> "Czechy"
-            "SK" -> "Słowacja"
-            "UA" -> "Ukraina"
-            "AT" -> "Austria"
-            "CH" -> "Szwajcaria"
-            "NL" -> "Holandia"
-            "BE" -> "Belgia"
-            "PT" -> "Portugalia"
-            "GR" -> "Grecja"
-            "HR" -> "Chorwacja"
-            "HU" -> "Węgry"
-            "SE" -> "Szwecja"
-            "NO" -> "Norwegia"
-            "DK" -> "Dania"
-            "FI" -> "Finlandia"
-            "IE" -> "Irlandia"
-            "RU" -> "Rosja"
-            "JP" -> "Japonia"
-            "CN" -> "Chiny"
-            "AU" -> "Australia"
-            "CA" -> "Kanada"
-            "MX" -> "Meksyk"
-            "BR" -> "Brazylia"
-            "AR" -> "Argentyna"
-            "EG" -> "Egipt"
-            "TR" -> "Turcja"
-            "TH" -> "Tajlandia"
-            "IN" -> "Indie"
-            "KR" -> "Korea Południowa"
-            else -> countryCode
-        }
     }
 }

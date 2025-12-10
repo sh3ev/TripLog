@@ -59,7 +59,7 @@ class CalendarDayAdapter(
             binding.viewSelectedBackground.visibility = View.GONE
             binding.viewRangeBackground.visibility = View.GONE
             binding.textViewDay.setTextColor(
-                if (isPast) 0xFF999999.toInt() else 0xFF222222.toInt()
+                if (isPast) 0xFF666666.toInt() else 0xFFFFFFFF.toInt()
             )
 
             when {

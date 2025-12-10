@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
     private const val WEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5/"
-    private const val GEO_BASE_URL = "https://api.openweathermap.org/geo/1.0/"
+    private const val PHOTON_BASE_URL = "https://photon.komoot.io/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -26,13 +26,13 @@ object RetrofitInstance {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    private val geoRetrofit = Retrofit.Builder()
-        .baseUrl(GEO_BASE_URL)
+    private val photonRetrofit = Retrofit.Builder()
+        .baseUrl(PHOTON_BASE_URL)
         .client(client)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
     val weatherApi: WeatherApi = weatherRetrofit.create(WeatherApi::class.java)
-    val geocodingApi: GeocodingApi = geoRetrofit.create(GeocodingApi::class.java)
+    val photonApi: PhotonApi = photonRetrofit.create(PhotonApi::class.java)
 }
 

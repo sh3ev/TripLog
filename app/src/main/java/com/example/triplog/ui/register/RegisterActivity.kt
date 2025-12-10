@@ -38,6 +38,11 @@ class RegisterActivity : AppCompatActivity() {
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Back button
+        binding.buttonBack.setOnClickListener {
+            finish()
+        }
+
         binding.buttonSingup.setOnClickListener {
             clearErrors()
             val email = binding.editTextEmail.text.toString().trim()

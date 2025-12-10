@@ -69,14 +69,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupSearchBar() {
-        // Clear button functionality
-        binding.editTextText.setOnTouchListener { v, event ->
-            val drawableEnd = 2 // Right drawable index
-            if (event.rawX >= (binding.editTextText.right - binding.editTextText.compoundDrawables[drawableEnd].bounds.width())) {
-                binding.editTextText.text.clear()
-                return@setOnTouchListener true
-            }
-            false
+        // Show/hide clear button based on text
+        binding.imageViewClearSearch.setOnClickListener {
+            binding.editTextText.text.clear()
         }
 
         // Search functionality with debounce
@@ -84,6 +79,10 @@ class MainActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Show/hide clear button
+                binding.imageViewClearSearch.visibility = 
+                    if (s?.isNotEmpty() == true) View.VISIBLE else View.GONE
+                
                 searchJob?.cancel()
                 searchJob = lifecycleScope.launch {
                     delay(300) // Debounce delay

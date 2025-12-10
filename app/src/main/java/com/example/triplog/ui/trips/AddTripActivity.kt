@@ -101,6 +101,9 @@ class AddTripActivity : AppCompatActivity() {
 
         tripId = intent.getLongExtra("TRIP_ID", -1).takeIf { it != -1L }
 
+        // Przycisk wstecz
+        binding.buttonBack.setOnClickListener { finish() }
+
         setupImageRecyclerView()
         setupLocationSelection()
 

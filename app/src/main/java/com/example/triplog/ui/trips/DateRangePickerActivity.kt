@@ -78,6 +78,7 @@ class DateRangePickerActivity : AppCompatActivity() {
 
     private fun generateMonths(count: Int): List<CalendarMonth> {
         val months = mutableListOf<CalendarMonth>()
+        // Zacznij od obecnego miesiąca (nie poprzedniego)
         var currentMonth = YearMonth.now()
 
         repeat(count) {
@@ -119,8 +120,8 @@ class DateRangePickerActivity : AppCompatActivity() {
                     endDate = startDate
                     startDate = date
                 } else if (date == startDate) {
-                    // Kliknięto tę samą datę - wyczyść
-                    startDate = null
+                    // Kliknięto tę samą datę - ustaw jako pojedynczy dzień
+                    endDate = date
                 } else {
                     endDate = date
                 }
@@ -140,6 +141,10 @@ class DateRangePickerActivity : AppCompatActivity() {
         val formatter = DateTimeFormatter.ofPattern("d MMM", Locale("pl"))
         
         binding.textViewSelectedRange.text = when {
+            startDate != null && endDate != null && startDate == endDate -> {
+                // Pojedynczy dzień
+                startDate!!.format(formatter)
+            }
             startDate != null && endDate != null -> {
                 val start = startDate!!.format(formatter)
                 val end = endDate!!.format(formatter)
@@ -151,7 +156,7 @@ class DateRangePickerActivity : AppCompatActivity() {
             else -> "Wybierz daty podróży"
         }
 
-        // Włącz przycisk tylko gdy wybrano zakres
+        // Włącz przycisk gdy wybrano datę/zakres
         binding.buttonNext.isEnabled = startDate != null && endDate != null
         binding.buttonNext.alpha = if (binding.buttonNext.isEnabled) 1f else 0.5f
     }
