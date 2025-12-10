@@ -1,6 +1,7 @@
 package com.example.triplog.ui.trips
 
 import android.Manifest
+import android.app.DatePickerDialog
 import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
@@ -25,6 +26,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -84,9 +86,51 @@ class AddTripActivity : AppCompatActivity() {
             requestLocationPermission()
         }
 
+        binding.editTextDate.setOnClickListener {
+            showDatePicker()
+        }
+
         binding.buttonSave.setOnClickListener {
             saveTrip()
         }
+    }
+
+    private fun showDatePicker() {
+        val calendar = Calendar.getInstance()
+        
+        // Jeśli pole daty ma już wartość, sparsuj ją i ustaw jako początkową
+        val currentDateText = binding.editTextDate.text.toString()
+        if (currentDateText.isNotEmpty()) {
+            try {
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val date = dateFormat.parse(currentDateText)
+                if (date != null) {
+                    calendar.time = date
+                }
+            } catch (e: Exception) {
+                // Jeśli nie można sparsować, użyj dzisiejszej daty
+            }
+        }
+        
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        val datePickerDialog = DatePickerDialog(
+            this,
+            { _, selectedYear, selectedMonth, selectedDay ->
+                val selectedDate = Calendar.getInstance().apply {
+                    set(selectedYear, selectedMonth, selectedDay)
+                }
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                binding.editTextDate.setText(dateFormat.format(selectedDate.time))
+            },
+            year,
+            month,
+            day
+        )
+        
+        datePickerDialog.show()
     }
 
     private fun setupImageRecyclerView() {

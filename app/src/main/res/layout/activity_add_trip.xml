@@ -32,6 +32,8 @@
                 android:layout_height="50dp"
                 android:background="@drawable/background_edittext"
                 android:hint="Tytuł podróży"
+                android:textColor="#717171"
+                android:textColorHint="#717171"
                 android:inputType="text"
                 android:padding="16sp" />
 
@@ -42,6 +44,8 @@
                 android:layout_marginTop="16dp"
                 android:background="@drawable/background_edittext"
                 android:hint="Opis"
+                android:textColor="#717171"
+                android:textColorHint="#717171"
                 android:inputType="textMultiLine"
                 android:minLines="3"
                 android:padding="16sp" />
@@ -53,8 +57,12 @@
                 android:layout_marginTop="16dp"
                 android:background="@drawable/background_edittext"
                 android:padding="16sp"
-                android:hint="Data (yyyy-MM-dd)"
-                android:inputType="date" />
+                android:hint="Wybierz datę"
+                android:textColor="#717171"
+                android:textColorHint="#717171"
+                android:inputType="none"
+                android:focusable="false"
+                android:clickable="true" />
 
             <Button
                 android:id="@+id/buttonSelectImage"
@@ -88,8 +96,9 @@
                 android:background="@drawable/background_edittext"
                 android:padding="16sp"
                 android:textSize="16sp"
-                android:text="Brak lokalizacji"
-                android:textColor="@color/text_secondary" />
+                android:textColor="#717171"
+                android:textColorHint="#717171"
+                android:text="Brak lokalizacji" />
 
 
             <androidx.appcompat.widget.AppCompatButton
