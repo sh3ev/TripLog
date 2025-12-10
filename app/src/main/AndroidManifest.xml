@@ -49,6 +49,10 @@
             android:name=".ui.trips.TripDetailsActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.trips.LocationSearchActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateVisible" />
+        <activity
             android:name=".ui.trips.FullscreenImageActivity"
             android:exported="false"
             android:theme="@style/Theme.TripLog.Fullscreen" />

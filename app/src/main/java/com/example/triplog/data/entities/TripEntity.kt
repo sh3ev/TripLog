@@ -25,6 +25,7 @@ data class TripEntity(
     val imagePath: String? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,
-    val weatherSummary: String? = null
+    val weatherSummary: String? = null,
+    val locationName: String? = null // Nazwa miejsca (np. "Kraków, Polska")
 )
 

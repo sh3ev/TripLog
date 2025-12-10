@@ -1,25 +1,20 @@
 package com.example.triplog.ui.trips
 
-import android.Manifest
 import android.app.DatePickerDialog
-import android.content.pm.PackageManager
-import android.location.Location
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.triplog.R
 import com.example.triplog.data.AppDatabase
 import com.example.triplog.data.entities.TripEntity
 import com.example.triplog.data.entities.TripImageEntity
 import com.example.triplog.databinding.ActivityAddTripBinding
 import com.example.triplog.utils.SharedPreferencesHelper
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,17 +22,20 @@ import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 class AddTripActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddTripBinding
     private val database by lazy { AppDatabase.getDatabase(this) }
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val selectedImagePaths = mutableListOf<String>()
     private var tripId: Long? = null
     private var currentUserEmail: String? = null
     private lateinit var selectedImageAdapter: SelectedImageAdapter
+    
+    // Lokalizacja
+    private var currentLatitude: Double? = null
+    private var currentLongitude: Double? = null
+    private var currentLocationName: String? = null
 
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetMultipleContents()
@@ -46,14 +44,18 @@ class AddTripActivity : AppCompatActivity() {
             saveImageFromUri(uri)
         }
     }
-
-    private val locationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            getCurrentLocation()
-        } else {
-            Toast.makeText(this, "Uprawnienie do lokalizacji jest wymagane", Toast.LENGTH_SHORT).show()
+    
+    private val locationSearchLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            result.data?.let { data ->
+                currentLocationName = data.getStringExtra(LocationSearchActivity.EXTRA_LOCATION_NAME)
+                currentLatitude = data.getDoubleExtra(LocationSearchActivity.EXTRA_LATITUDE, 0.0)
+                currentLongitude = data.getDoubleExtra(LocationSearchActivity.EXTRA_LONGITUDE, 0.0)
+                
+                updateLocationUI()
+            }
         }
     }
 
@@ -62,7 +64,6 @@ class AddTripActivity : AppCompatActivity() {
         binding = ActivityAddTripBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         currentUserEmail = SharedPreferencesHelper.getLoggedInUser(this)
             ?: run {
                 finish()
@@ -72,6 +73,7 @@ class AddTripActivity : AppCompatActivity() {
         tripId = intent.getLongExtra("TRIP_ID", -1).takeIf { it != -1L }
 
         setupImageRecyclerView()
+        setupLocationSelection()
 
         if (tripId != null) {
             binding.buttonSave.text = "Zaktualizuj"
@@ -82,10 +84,6 @@ class AddTripActivity : AppCompatActivity() {
             imagePickerLauncher.launch("image/*")
         }
 
-        binding.buttonGetLocation.setOnClickListener {
-            requestLocationPermission()
-        }
-
         binding.editTextDate.setOnClickListener {
             showDatePicker()
         }
@@ -93,6 +91,37 @@ class AddTripActivity : AppCompatActivity() {
         binding.buttonSave.setOnClickListener {
             saveTrip()
         }
+    }
+
+    private fun setupLocationSelection() {
+        // Kliknięcie otwiera ekran wyszukiwania
+        binding.layoutSelectLocation.setOnClickListener {
+            val intent = Intent(this, LocationSearchActivity::class.java)
+            locationSearchLauncher.launch(intent)
+        }
+        
+        // Czyszczenie lokalizacji
+        binding.imageViewClearLocation.setOnClickListener {
+            clearLocation()
+        }
+    }
+    
+    private fun updateLocationUI() {
+        if (currentLocationName != null) {
+            binding.textViewSelectedLocation.text = currentLocationName
+            binding.layoutSelectedLocation.visibility = View.VISIBLE
+            binding.textViewLocationHint.text = "Zmień lokalizację"
+        } else {
+            binding.layoutSelectedLocation.visibility = View.GONE
+            binding.textViewLocationHint.text = "Dokąd chcesz jechać?"
+        }
+    }
+    
+    private fun clearLocation() {
+        currentLocationName = null
+        currentLatitude = null
+        currentLongitude = null
+        updateLocationUI()
     }
 
     private fun showDatePicker() {
@@ -172,40 +201,6 @@ class AddTripActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestLocationPermission() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                getCurrentLocation()
-            }
-            else -> {
-                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            }
-        }
-    }
-
-    private fun getCurrentLocation() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-            location?.let {
-                binding.textViewLocation.text = "Szerokość: ${it.latitude}, Długość: ${it.longitude}"
-                binding.textViewLocation.tag = "${it.latitude},${it.longitude}"
-                Toast.makeText(this, "Lokalizacja pobrana", Toast.LENGTH_SHORT).show()
-            } ?: run {
-                Toast.makeText(this, "Nie można pobrać lokalizacji", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     private fun loadTripData() {
         tripId?.let { id ->
             lifecycleScope.launch {
@@ -226,9 +221,12 @@ class AddTripActivity : AppCompatActivity() {
                         selectedImagePaths.addAll(images.map { img -> img.imagePath })
                         selectedImageAdapter.submitList(selectedImagePaths.toList())
                         
+                        // Załaduj lokalizację
                         if (it.latitude != null && it.longitude != null) {
-                            binding.textViewLocation.text = "Szerokość: ${it.latitude}, Długość: ${it.longitude}"
-                            binding.textViewLocation.tag = "${it.latitude},${it.longitude}"
+                            currentLatitude = it.latitude
+                            currentLongitude = it.longitude
+                            currentLocationName = it.locationName
+                            updateLocationUI()
                         }
                     }
                 } catch (e: Exception) {
@@ -248,18 +246,6 @@ class AddTripActivity : AppCompatActivity() {
             return
         }
 
-        val locationTag = binding.textViewLocation.tag?.toString()
-        val (latitude, longitude) = if (locationTag != null) {
-            val parts = locationTag.split(",")
-            if (parts.size == 2) {
-                Pair(parts[0].toDoubleOrNull(), parts[1].toDoubleOrNull())
-            } else {
-                Pair(null, null)
-            }
-        } else {
-            Pair(null, null)
-        }
-
         lifecycleScope.launch {
             try {
                 val savedTripId = if (tripId != null) {
@@ -271,8 +257,9 @@ class AddTripActivity : AppCompatActivity() {
                         title = title,
                         description = description,
                         date = date,
-                        latitude = latitude,
-                        longitude = longitude
+                        latitude = currentLatitude,
+                        longitude = currentLongitude,
+                        locationName = currentLocationName
                     ) ?: return@launch
                     
                     withContext(Dispatchers.IO) {
@@ -298,8 +285,9 @@ class AddTripActivity : AppCompatActivity() {
                         title = title,
                         description = description,
                         date = date,
-                        latitude = latitude,
-                        longitude = longitude
+                        latitude = currentLatitude,
+                        longitude = currentLongitude,
+                        locationName = currentLocationName
                     )
                     
                     withContext(Dispatchers.IO) {
@@ -329,4 +317,3 @@ class AddTripActivity : AppCompatActivity() {
         }
     }
 }
-
