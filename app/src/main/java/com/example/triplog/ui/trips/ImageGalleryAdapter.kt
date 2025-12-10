@@ -40,10 +40,10 @@ class ImageGalleryAdapter(
                     val rotatedBitmap = rotateBitmapIfRequired(bitmap, file.absolutePath)
                     imageView.setImageBitmap(rotatedBitmap)
                 } else {
-                    imageView.setImageResource(R.drawable.ic_launcher_foreground)
+                    imageView.setImageResource(R.drawable.ic_triplog_foreground)
                 }
             } catch (e: Exception) {
-                imageView.setImageResource(R.drawable.ic_launcher_foreground)
+                imageView.setImageResource(R.drawable.ic_triplog_foreground)
             }
 
             itemView.setOnClickListener {

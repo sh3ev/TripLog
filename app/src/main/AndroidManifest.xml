@@ -21,11 +21,6 @@
         android:theme="@style/Theme.TripLog"
         android:usesCleartextTraffic="true" >
         <activity
-            android:name=".ScrollingActivity"
-            android:exported="false"
-            android:label="@string/title_activity_scrolling"
-            android:theme="@style/Theme.TripLog.NoActionBar" />
-        <activity
             android:name=".ui.login.LoginActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan|stateHidden" >

@@ -57,7 +57,7 @@ Aplikacja Android do planowania i dokumentowania podróży. Zapisuj wspomnienia,
 
 ## 📂 Struktura projektu
 
-\`\`\`
+```
 app/src/main/java/com/example/triplog/
 ├── data/          # Baza danych Room (encje, DAO)
 ├── network/       # API (pogoda, lokalizacje)
@@ -68,7 +68,7 @@ app/src/main/java/com/example/triplog/
 │   ├── profile/   # Profil użytkownika
 │   └── trips/     # Dodawanie/edycja/szczegóły podróży
 └── utils/         # Narzędzia pomocnicze
-\`\`\`
+```
 
 ## 📄 Licencja
 

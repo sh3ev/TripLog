@@ -91,7 +91,7 @@ class TripAdapter(
             cancelImageLoading()
             
             // Set default image
-            imageView.setImageResource(R.drawable.ic_launcher_foreground)
+            imageView.setImageResource(R.drawable.ic_triplog_foreground)
             
             // Load first image from trip_images table with caching
             imageLoadingJob = lifecycleScope.launch {
