@@ -1,11 +1,13 @@
 package com.example.triplog.ui.main
 
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -15,6 +17,7 @@ import com.example.triplog.data.AppDatabase
 import com.example.triplog.data.entities.TripEntity
 import com.example.triplog.databinding.ActivityMainBinding
 import com.example.triplog.ui.login.LoginActivity
+import com.example.triplog.ui.profile.ProfileActivity
 import com.example.triplog.ui.trips.AddTripActivity
 import com.example.triplog.ui.trips.TripAdapter
 import com.example.triplog.ui.trips.TripDetailsActivity
@@ -24,6 +27,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -33,13 +37,21 @@ class MainActivity : AppCompatActivity() {
     private var searchJob: Job? = null
     private var backPressedTime: Long = 0
 
+    private val profileLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            loadUserProfile()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.imageView3.setOnClickListener { view ->
-            showAvatarMenu(view)
+        binding.imageView3.setOnClickListener {
+            navigateToProfile()
         }
 
         binding.buttonAddTrip.setOnClickListener {
@@ -54,18 +66,37 @@ class MainActivity : AppCompatActivity() {
 
         setupRecyclerView()
         setupSearchBar()
+        loadUserProfile()
+        loadTrips()
+    }
 
-        // Fetch user and set the welcome message
+    private fun loadUserProfile() {
         lifecycleScope.launch {
             val user = withContext(Dispatchers.IO) {
                 currentUserEmail?.let { database.userDao().getUserByEmail(it) }
             }
             user?.let {
-                binding.textView7.text = "Witaj, ${it.name}!"
+                // Ustaw powitanie
+                val displayName = when {
+                    !it.firstName.isNullOrBlank() -> it.firstName
+                    else -> it.name.split(" ").firstOrNull() ?: it.name
+                }
+                binding.textView7.text = displayName
+
+                // Załaduj zdjęcie profilowe lub placeholder
+                if (!it.profileImagePath.isNullOrBlank()) {
+                    val file = File(it.profileImagePath!!)
+                    if (file.exists()) {
+                        val bitmap = BitmapFactory.decodeFile(it.profileImagePath)
+                        binding.imageView3.setImageBitmap(bitmap)
+                    } else {
+                        binding.imageView3.setImageResource(R.drawable.ic_person_placeholder)
+                    }
+                } else {
+                    binding.imageView3.setImageResource(R.drawable.ic_person_placeholder)
+                }
             }
         }
-
-        loadTrips()
     }
 
     private fun setupSearchBar() {
@@ -165,27 +196,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun showAvatarMenu(anchor: View) {
-        AlertDialog.Builder(this)
-            .setTitle("Menu")
-            .setItems(arrayOf("Wyloguj")) { _, which ->
-                when (which) {
-                    0 -> showLogoutConfirmationDialog()
-                }
-            }
-            .show()
-    }
-
-    private fun showLogoutConfirmationDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Wylogowanie")
-            .setMessage("Czy na pewno chcesz się wylogować?")
-            .setPositiveButton("Wyloguj") { _, _ ->
-                SharedPreferencesHelper.clearLoggedInUser(this)
-                navigateToLogin()
-            }
-            .setNegativeButton("Anuluj", null)
-            .show()
+    private fun navigateToProfile() {
+        val intent = Intent(this, ProfileActivity::class.java)
+        profileLauncher.launch(intent)
     }
 
     private fun navigateToLogin() {

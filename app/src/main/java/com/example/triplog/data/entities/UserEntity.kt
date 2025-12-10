@@ -8,6 +8,9 @@ data class UserEntity(
     @PrimaryKey
     val email: String,
     val name: String,
-    val passwordHash: String // SHA-256 hash
+    val passwordHash: String,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val profileImagePath: String? = null
 )
 

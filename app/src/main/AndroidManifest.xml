@@ -49,6 +49,9 @@
             android:name=".ui.trips.TripDetailsActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.profile.ProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.trips.LocationSearchActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize|stateVisible" />
