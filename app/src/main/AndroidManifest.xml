@@ -53,6 +53,12 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize|stateVisible" />
         <activity
+            android:name=".ui.trips.DateRangePickerActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.trips.WeatherPreviewActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.trips.FullscreenImageActivity"
             android:exported="false"
             android:theme="@style/Theme.TripLog.Fullscreen" />

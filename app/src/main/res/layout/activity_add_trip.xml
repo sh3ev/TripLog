@@ -50,20 +50,6 @@
                 android:minLines="3"
                 android:padding="16sp" />
 
-            <EditText
-                android:id="@+id/editTextDate"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/background_edittext"
-                android:padding="16sp"
-                android:hint="Wybierz datę"
-                android:textColor="#717171"
-                android:textColorHint="#717171"
-                android:inputType="none"
-                android:focusable="false"
-                android:clickable="true" />
-
             <Button
                 android:id="@+id/buttonSelectImage"
                 android:layout_width="match_parent"

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Tło dla zakresu (między datami) -->
+    <View
+        android:id="@+id/viewRangeBackground"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:background="#E8E8E8"
+        android:visibility="gone" />
+
+    <!-- Tło dla wybranego dnia -->
+    <View
+        android:id="@+id/viewSelectedBackground"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:background="@drawable/background_day_selected"
+        android:visibility="gone" />
+
+    <!-- Numer dnia -->
+    <TextView
+        android:id="@+id/textViewDay"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="#222222" />
+
+</FrameLayout>

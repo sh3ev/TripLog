@@ -1,6 +1,5 @@
 package com.example.triplog.ui.trips
 
-import android.app.DatePickerDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -20,8 +19,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class AddTripActivity : AppCompatActivity() {
@@ -32,10 +31,12 @@ class AddTripActivity : AppCompatActivity() {
     private var currentUserEmail: String? = null
     private lateinit var selectedImageAdapter: SelectedImageAdapter
     
-    // Lokalizacja
+    // Lokalizacja i daty
     private var currentLatitude: Double? = null
     private var currentLongitude: Double? = null
     private var currentLocationName: String? = null
+    private var startDate: LocalDate? = null
+    private var endDate: LocalDate? = null
 
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetMultipleContents()
@@ -45,16 +46,44 @@ class AddTripActivity : AppCompatActivity() {
         }
     }
     
+    // Launcher dla wyboru lokalizacji - po wyborze otwiera wybór dat
     private val locationSearchLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             result.data?.let { data ->
-                currentLocationName = data.getStringExtra(LocationSearchActivity.EXTRA_LOCATION_NAME)
-                currentLatitude = data.getDoubleExtra(LocationSearchActivity.EXTRA_LATITUDE, 0.0)
-                currentLongitude = data.getDoubleExtra(LocationSearchActivity.EXTRA_LONGITUDE, 0.0)
+                val locationName = data.getStringExtra(LocationSearchActivity.EXTRA_LOCATION_NAME)
+                val latitude = data.getDoubleExtra(LocationSearchActivity.EXTRA_LATITUDE, 0.0)
+                val longitude = data.getDoubleExtra(LocationSearchActivity.EXTRA_LONGITUDE, 0.0)
                 
-                updateLocationUI()
+                // Otwórz wybór dat z danymi lokalizacji
+                val intent = Intent(this, DateRangePickerActivity::class.java).apply {
+                    putExtra(DateRangePickerActivity.EXTRA_LOCATION_NAME, locationName)
+                    putExtra(DateRangePickerActivity.EXTRA_LATITUDE, latitude)
+                    putExtra(DateRangePickerActivity.EXTRA_LONGITUDE, longitude)
+                }
+                dateRangePickerLauncher.launch(intent)
+            }
+        }
+    }
+    
+    // Launcher dla wyboru dat
+    private val dateRangePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            result.data?.let { data ->
+                currentLocationName = data.getStringExtra(DateRangePickerActivity.EXTRA_LOCATION_NAME)
+                currentLatitude = data.getDoubleExtra(DateRangePickerActivity.EXTRA_LATITUDE, 0.0)
+                currentLongitude = data.getDoubleExtra(DateRangePickerActivity.EXTRA_LONGITUDE, 0.0)
+                
+                val startDateStr = data.getStringExtra(DateRangePickerActivity.EXTRA_START_DATE)
+                val endDateStr = data.getStringExtra(DateRangePickerActivity.EXTRA_END_DATE)
+                
+                startDate = startDateStr?.let { LocalDate.parse(it) }
+                endDate = endDateStr?.let { LocalDate.parse(it) }
+                
+                updateLocationAndDateUI()
             }
         }
     }
@@ -84,85 +113,43 @@ class AddTripActivity : AppCompatActivity() {
             imagePickerLauncher.launch("image/*")
         }
 
-        binding.editTextDate.setOnClickListener {
-            showDatePicker()
-        }
-
         binding.buttonSave.setOnClickListener {
             saveTrip()
         }
     }
 
     private fun setupLocationSelection() {
-        // Kliknięcie otwiera ekran wyszukiwania
         binding.layoutSelectLocation.setOnClickListener {
             val intent = Intent(this, LocationSearchActivity::class.java)
             locationSearchLauncher.launch(intent)
         }
         
-        // Czyszczenie lokalizacji
         binding.imageViewClearLocation.setOnClickListener {
-            clearLocation()
+            clearLocationAndDates()
         }
     }
     
-    private fun updateLocationUI() {
-        if (currentLocationName != null) {
-            binding.textViewSelectedLocation.text = currentLocationName
+    private fun updateLocationAndDateUI() {
+        if (currentLocationName != null && startDate != null && endDate != null) {
+            val formatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale("pl"))
+            val dateRange = "${startDate!!.format(formatter)} - ${endDate!!.format(formatter)}"
+            
+            binding.textViewSelectedLocation.text = "$currentLocationName\n$dateRange"
             binding.layoutSelectedLocation.visibility = View.VISIBLE
-            binding.textViewLocationHint.text = "Zmień lokalizację"
+            binding.textViewLocationHint.text = "Zmień cel podróży"
         } else {
             binding.layoutSelectedLocation.visibility = View.GONE
             binding.textViewLocationHint.text = "Dokąd chcesz jechać?"
         }
     }
     
-    private fun clearLocation() {
+    private fun clearLocationAndDates() {
         currentLocationName = null
         currentLatitude = null
         currentLongitude = null
-        updateLocationUI()
-    }
-
-    private fun showDatePicker() {
-        val calendar = Calendar.getInstance()
-        
-        // Jeśli pole daty ma już wartość, sparsuj ją i ustaw jako początkową
-        val currentDateText = binding.editTextDate.text.toString()
-        if (currentDateText.isNotEmpty()) {
-            try {
-                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                val date = dateFormat.parse(currentDateText)
-                if (date != null) {
-                    calendar.time = date
-                }
-            } catch (e: Exception) {
-                // Jeśli nie można sparsować, użyj dzisiejszej daty
-            }
-        }
-        
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-
-        val datePickerDialog = DatePickerDialog(
-            this,
-            { _, selectedYear, selectedMonth, selectedDay ->
-                val selectedDate = Calendar.getInstance().apply {
-                    set(selectedYear, selectedMonth, selectedDay)
-                }
-                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                binding.editTextDate.setText(dateFormat.format(selectedDate.time))
-            },
-            year,
-            month,
-            day
-        )
-        
-        // Ogranicz datę do dzisiaj (podróże są z przeszłości)
-        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
-        
-        datePickerDialog.show()
+        startDate = null
+        endDate = null
+        updateLocationAndDateUI()
     }
 
     private fun setupImageRecyclerView() {
@@ -211,9 +198,7 @@ class AddTripActivity : AppCompatActivity() {
                     trip?.let {
                         binding.editTextTitle.setText(it.title)
                         binding.editTextDescription.setText(it.description)
-                        binding.editTextDate.setText(it.date)
                         
-                        // Load existing images
                         val images = withContext(Dispatchers.IO) {
                             database.tripImageDao().getImagesByTripIdSync(id)
                         }
@@ -221,12 +206,13 @@ class AddTripActivity : AppCompatActivity() {
                         selectedImagePaths.addAll(images.map { img -> img.imagePath })
                         selectedImageAdapter.submitList(selectedImagePaths.toList())
                         
-                        // Załaduj lokalizację
                         if (it.latitude != null && it.longitude != null) {
                             currentLatitude = it.latitude
                             currentLongitude = it.longitude
                             currentLocationName = it.locationName
-                            updateLocationUI()
+                            startDate = try { LocalDate.parse(it.date) } catch (e: Exception) { null }
+                            endDate = try { it.endDate?.let { d -> LocalDate.parse(d) } } catch (e: Exception) { null }
+                            updateLocationAndDateUI()
                         }
                     }
                 } catch (e: Exception) {
@@ -239,24 +225,28 @@ class AddTripActivity : AppCompatActivity() {
     private fun saveTrip() {
         val title = binding.editTextTitle.text.toString().trim()
         val description = binding.editTextDescription.text.toString().trim()
-        val date = binding.editTextDate.text.toString().trim()
 
-        if (title.isEmpty() || description.isEmpty() || date.isEmpty()) {
-            Toast.makeText(this, "Wypełnij wszystkie pola", Toast.LENGTH_SHORT).show()
+        if (title.isEmpty() || description.isEmpty()) {
+            Toast.makeText(this, "Wypełnij tytuł i opis", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (startDate == null || endDate == null) {
+            Toast.makeText(this, "Wybierz cel podróży i daty", Toast.LENGTH_SHORT).show()
             return
         }
 
         lifecycleScope.launch {
             try {
                 val savedTripId = if (tripId != null) {
-                    // Update existing trip
                     val existingTrip = withContext(Dispatchers.IO) {
                         database.tripDao().getTripById(tripId!!)
                     }
                     val updatedTrip = existingTrip?.copy(
                         title = title,
                         description = description,
-                        date = date,
+                        date = startDate.toString(),
+                        endDate = endDate.toString(),
                         latitude = currentLatitude,
                         longitude = currentLongitude,
                         locationName = currentLocationName
@@ -264,45 +254,35 @@ class AddTripActivity : AppCompatActivity() {
                     
                     withContext(Dispatchers.IO) {
                         database.tripDao().updateTrip(updatedTrip)
-                        // Usuń stare pliki zdjęć, które nie są już wybrane
                         val oldImages = database.tripImageDao().getImagesByTripIdSync(tripId!!)
                         oldImages.forEach { image ->
                             if (!selectedImagePaths.contains(image.imagePath)) {
                                 val file = java.io.File(image.imagePath)
-                                if (file.exists()) {
-                                    file.delete()
-                                }
+                                if (file.exists()) file.delete()
                             }
                         }
-                        // Delete old images from DB and insert new ones
                         database.tripImageDao().deleteImagesByTripId(tripId!!)
                     }
                     tripId!!
                 } else {
-                    // Create new trip
                     val newTrip = TripEntity(
                         userEmail = currentUserEmail!!,
                         title = title,
                         description = description,
-                        date = date,
+                        date = startDate.toString(),
+                        endDate = endDate.toString(),
                         latitude = currentLatitude,
                         longitude = currentLongitude,
                         locationName = currentLocationName
                     )
-                    
                     withContext(Dispatchers.IO) {
                         database.tripDao().insertTrip(newTrip)
                     }
                 }
 
-                // Save images
                 if (selectedImagePaths.isNotEmpty()) {
                     val imageEntities = selectedImagePaths.mapIndexed { index, path ->
-                        TripImageEntity(
-                            tripId = savedTripId,
-                            imagePath = path,
-                            orderIndex = index
-                        )
+                        TripImageEntity(tripId = savedTripId, imagePath = path, orderIndex = index)
                     }
                     withContext(Dispatchers.IO) {
                         database.tripImageDao().insertImages(imageEntities)
