@@ -21,6 +21,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class TripAdapter(
     private val database: AppDatabase,
@@ -57,6 +60,7 @@ class TripAdapter(
         private val imageView: ImageView = itemView.findViewById(R.id.imageViewThumbnail)
         private val textViewTitle: TextView = itemView.findViewById(R.id.textViewTitle)
         private val textViewDate: TextView = itemView.findViewById(R.id.textViewDate)
+        private val textViewLocation: TextView = itemView.findViewById(R.id.textViewLocation)
         private val imageButtonEdit: ImageButton = itemView.findViewById(R.id.imageButtonEdit)
         private val imageButtonDelete: ImageButton = itemView.findViewById(R.id.imageButtonDelete)
         
@@ -69,7 +73,17 @@ class TripAdapter(
 
         fun bind(trip: TripEntity) {
             textViewTitle.text = trip.title
-            textViewDate.text = trip.date
+            
+            // Formatuj zakres dat
+            textViewDate.text = formatDateRange(trip.date, trip.endDate)
+            
+            // Pokaż lokalizację jeśli dostępna
+            if (!trip.locationName.isNullOrEmpty()) {
+                textViewLocation.text = trip.locationName
+                textViewLocation.visibility = View.VISIBLE
+            } else {
+                textViewLocation.visibility = View.GONE
+            }
 
             // Cancel any previous image loading
             cancelImageLoading()
@@ -149,6 +163,31 @@ class TripAdapter(
 
         override fun areContentsTheSame(oldItem: TripEntity, newItem: TripEntity): Boolean {
             return oldItem == newItem
+        }
+    }
+    
+    private fun formatDateRange(startDate: String?, endDate: String?): String {
+        if (startDate.isNullOrEmpty()) return "Brak daty"
+        
+        return try {
+            val polishLocale = Locale.forLanguageTag("pl")
+            val formatter = DateTimeFormatter.ofPattern("d MMM yyyy", polishLocale)
+            val start = LocalDate.parse(startDate)
+            
+            if (endDate.isNullOrEmpty() || startDate == endDate) {
+                start.format(formatter)
+            } else {
+                val end = LocalDate.parse(endDate)
+                val shortFormatter = DateTimeFormatter.ofPattern("d MMM", polishLocale)
+                
+                if (start.year == end.year) {
+                    "${start.format(shortFormatter)} - ${end.format(formatter)}"
+                } else {
+                    "${start.format(formatter)} - ${end.format(formatter)}"
+                }
+            }
+        } catch (e: Exception) {
+            startDate
         }
     }
 }

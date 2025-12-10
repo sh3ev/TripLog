@@ -14,14 +14,20 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import android.content.Intent
 import com.example.triplog.R
+import com.example.triplog.config.ApiConfig
 import com.example.triplog.data.AppDatabase
 import com.example.triplog.databinding.ActivityTripDetailsBinding
+import com.example.triplog.network.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -35,6 +41,7 @@ class TripDetailsActivity : AppCompatActivity() {
     private var lastWeatherUpdateTime: Long = 0
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     private lateinit var imageGalleryAdapter: ImageGalleryAdapter
+    private lateinit var weatherForecastAdapter: WeatherDayAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,9 +60,9 @@ class TripDetailsActivity : AppCompatActivity() {
         supportActionBar?.title = "Szczegóły podróży"
 
         setupImageGallery()
+        setupWeatherForecast()
         loadTripDetails()
         loadTripImages()
-        observeWeather()
     }
 
     private fun setupImageGallery() {
@@ -65,6 +72,15 @@ class TripDetailsActivity : AppCompatActivity() {
         binding.recyclerViewImages.apply {
             adapter = imageGalleryAdapter
             layoutManager = LinearLayoutManager(this@TripDetailsActivity, LinearLayoutManager.HORIZONTAL, false)
+        }
+    }
+    
+    private fun setupWeatherForecast() {
+        weatherForecastAdapter = WeatherDayAdapter()
+        binding.recyclerViewWeatherForecast.apply {
+            adapter = weatherForecastAdapter
+            layoutManager = LinearLayoutManager(this@TripDetailsActivity)
+            isNestedScrollingEnabled = false
         }
     }
 
@@ -100,40 +116,40 @@ class TripDetailsActivity : AppCompatActivity() {
                 try {
                     binding.textViewTitle.text = trip.title
                     binding.textViewDescription.text = trip.description
-                    binding.textViewDate.text = trip.date
+                    
+                    // Wyświetl zakres dat
+                    binding.textViewDate.text = formatDateRange(trip.date, trip.endDate)
 
                     if (trip.latitude != null && trip.longitude != null) {
                         val lat = trip.latitude!!
                         val lon = trip.longitude!!
-                        binding.textViewLocation.text = String.format(Locale.getDefault(), "%.4f°N, %.4f°E", lat, lon)
+                        
+                        // Wyświetl nazwę lokalizacji lub współrzędne
+                        if (!trip.locationName.isNullOrEmpty()) {
+                            binding.textViewLocation.text = trip.locationName
+                        } else {
+                            binding.textViewLocation.text = String.format(Locale.getDefault(), "%.4f°N, %.4f°E", lat, lon)
+                        }
+                        
                         binding.buttonRefreshWeather.setOnClickListener {
-                            viewModel.fetchWeather(lat, lon)
+                            loadWeatherForecast(lat, lon, trip.date, trip.endDate)
                         }
                         binding.buttonRefreshWeather.isEnabled = true
                         
                         // Show map
                         showMap(lat, lon)
                         
-                        // Automatycznie pobierz pogodę jeśli brak zapisanej
-                        if (trip.weatherSummary.isNullOrEmpty()) {
-                            viewModel.fetchWeather(lat, lon)
-                        }
+                        // Załaduj prognozę pogody
+                        loadWeatherForecast(lat, lon, trip.date, trip.endDate)
                     } else {
                         binding.textViewLocation.text = "Brak lokalizacji"
                         binding.buttonRefreshWeather.isEnabled = false
+                        binding.textViewNoWeather.visibility = View.VISIBLE
+                        binding.recyclerViewWeatherForecast.visibility = View.GONE
                         
                         // Hide map, show no location message
                         binding.webViewMap.visibility = View.GONE
                         binding.textViewNoLocation.visibility = View.VISIBLE
-                    }
-
-                    if (!trip.weatherSummary.isNullOrEmpty()) {
-                        displayWeatherData(trip.weatherSummary, null)
-                    } else {
-                        binding.textViewWeather.text = "Brak danych pogodowych"
-                        binding.textViewWeatherDescription.visibility = View.GONE
-                        binding.textViewWeatherLastUpdate.visibility = View.GONE
-                        binding.imageViewWeatherIcon.visibility = View.GONE
                     }
                 } catch (e: Exception) {
                     Toast.makeText(this@TripDetailsActivity, "Błąd wyświetlania danych: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -145,67 +161,119 @@ class TripDetailsActivity : AppCompatActivity() {
             }
         }
     }
-
-    private fun observeWeather() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.weatherState.collect { state ->
-                    when (state) {
-                        is WeatherState.Loading -> {
-                            binding.textViewWeather.text = "Ładowanie pogody..."
-                            binding.textViewWeatherDescription.visibility = View.GONE
-                            binding.textViewWeatherLastUpdate.visibility = View.GONE
-                            binding.imageViewWeatherIcon.visibility = View.GONE
-                            binding.buttonRefreshWeather.isEnabled = false
-                        }
-                        is WeatherState.Success -> {
-                            val summary = state.summary
-                            val description = state.response.weather.firstOrNull()?.description
-                            displayWeatherData(summary, description)
-                            binding.buttonRefreshWeather.isEnabled = true
-                            // Zapisz pogodę w bazie
-                            viewModel.updateTripWeather(tripId, summary)
-                            lastWeatherUpdateTime = System.currentTimeMillis()
-                            updateLastUpdateTime()
-                        }
-                        is WeatherState.Error -> {
-                            binding.textViewWeather.text = state.message
-                            binding.textViewWeatherDescription.visibility = View.GONE
-                            binding.textViewWeatherLastUpdate.visibility = View.GONE
-                            binding.imageViewWeatherIcon.visibility = View.GONE
-                            binding.buttonRefreshWeather.isEnabled = true
-                            Toast.makeText(this@TripDetailsActivity, state.message, Toast.LENGTH_SHORT).show()
-                        }
-                    }
+    
+    private fun formatDateRange(startDate: String?, endDate: String?): String {
+        if (startDate.isNullOrEmpty()) return "Brak daty"
+        
+        return try {
+            val polishLocale = Locale.forLanguageTag("pl")
+            val formatter = DateTimeFormatter.ofPattern("d MMM yyyy", polishLocale)
+            val start = LocalDate.parse(startDate)
+            
+            if (endDate.isNullOrEmpty() || startDate == endDate) {
+                start.format(formatter)
+            } else {
+                val end = LocalDate.parse(endDate)
+                val shortFormatter = DateTimeFormatter.ofPattern("d MMM", polishLocale)
+                
+                if (start.year == end.year) {
+                    "${start.format(shortFormatter)} - ${end.format(formatter)}"
+                } else {
+                    "${start.format(formatter)} - ${end.format(formatter)}"
                 }
             }
+        } catch (e: Exception) {
+            startDate
         }
     }
-
-    private fun displayWeatherData(summary: String, description: String?) {
-        // Parse temperature from summary (format: "XX°C, description")
-        val parts = summary.split(", ")
-        val temperature = parts.firstOrNull() ?: summary
-        val weatherDescription = description ?: parts.getOrNull(1) ?: ""
-
-        binding.textViewWeather.text = temperature
-        if (weatherDescription.isNotEmpty()) {
-            val capitalized = weatherDescription.replaceFirstChar { 
-                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() 
+    
+    private fun loadWeatherForecast(lat: Double, lon: Double, startDate: String?, endDate: String?) {
+        if (startDate.isNullOrEmpty()) {
+            binding.textViewNoWeather.visibility = View.VISIBLE
+            binding.recyclerViewWeatherForecast.visibility = View.GONE
+            return
+        }
+        
+        binding.progressBarWeather.visibility = View.VISIBLE
+        binding.recyclerViewWeatherForecast.visibility = View.GONE
+        binding.textViewNoWeather.visibility = View.GONE
+        
+        lifecycleScope.launch {
+            try {
+                val forecast = withContext(Dispatchers.IO) {
+                    RetrofitInstance.weatherApi.getForecast(
+                        latitude = lat,
+                        longitude = lon,
+                        apiKey = ApiConfig.OPENWEATHER_API_KEY
+                    )
+                }
+                
+                val start = LocalDate.parse(startDate)
+                val end = if (!endDate.isNullOrEmpty()) LocalDate.parse(endDate) else start
+                
+                // Grupuj prognozy po dniach
+                val forecastByDay = forecast.list.groupBy { item ->
+                    Instant.ofEpochSecond(item.dt)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                }.mapValues { (_, items) ->
+                    items.minByOrNull { item ->
+                        val hour = Instant.ofEpochSecond(item.dt)
+                            .atZone(ZoneId.systemDefault())
+                            .hour
+                        kotlin.math.abs(hour - 12)
+                    }
+                }
+                
+                // Utwórz listę dni z pogodą
+                val weatherDays = mutableListOf<DayWeather>()
+                var currentDate = start
+                
+                while (!currentDate.isAfter(end)) {
+                    val forecastItem = forecastByDay[currentDate]
+                    
+                    if (forecastItem != null) {
+                        weatherDays.add(
+                            DayWeather(
+                                date = currentDate,
+                                temperature = forecastItem.main.temp,
+                                description = forecastItem.weather.firstOrNull()?.description ?: "",
+                                iconCode = forecastItem.weather.firstOrNull()?.icon ?: "01d",
+                                isAvailable = true
+                            )
+                        )
+                    } else {
+                        weatherDays.add(
+                            DayWeather(
+                                date = currentDate,
+                                temperature = 0.0,
+                                description = "",
+                                iconCode = "",
+                                isAvailable = false
+                            )
+                        )
+                    }
+                    
+                    currentDate = currentDate.plusDays(1)
+                }
+                
+                binding.progressBarWeather.visibility = View.GONE
+                
+                if (weatherDays.isEmpty()) {
+                    binding.textViewNoWeather.visibility = View.VISIBLE
+                    binding.recyclerViewWeatherForecast.visibility = View.GONE
+                } else {
+                    binding.textViewNoWeather.visibility = View.GONE
+                    binding.recyclerViewWeatherForecast.visibility = View.VISIBLE
+                    weatherForecastAdapter.submitList(weatherDays)
+                }
+                
+            } catch (e: Exception) {
+                binding.progressBarWeather.visibility = View.GONE
+                binding.textViewNoWeather.visibility = View.VISIBLE
+                binding.textViewNoWeather.text = "Błąd pobierania prognozy"
+                binding.recyclerViewWeatherForecast.visibility = View.GONE
             }
-            binding.textViewWeatherDescription.text = capitalized
-            binding.textViewWeatherDescription.visibility = View.VISIBLE
-        } else {
-            binding.textViewWeatherDescription.visibility = View.GONE
-        }
-        binding.imageViewWeatherIcon.visibility = View.VISIBLE
-    }
-
-    private fun updateLastUpdateTime() {
-        if (lastWeatherUpdateTime > 0) {
-            val timeString = timeFormat.format(Date(lastWeatherUpdateTime))
-            binding.textViewWeatherLastUpdate.text = "Ostatnia aktualizacja: $timeString"
-            binding.textViewWeatherLastUpdate.visibility = View.VISIBLE
         }
     }
 
