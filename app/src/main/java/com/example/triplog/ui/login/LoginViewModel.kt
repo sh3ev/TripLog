@@ -5,14 +5,18 @@ import androidx.lifecycle.viewModelScope
 import com.example.triplog.data.AppDatabase
 import com.example.triplog.utils.PasswordHasher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class LoginViewModel(private val database: AppDatabase) : ViewModel() {
-    val loginResult = androidx.lifecycle.MutableLiveData<LoginResult>()
+    private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
+    val loginState: StateFlow<LoginState> = _loginState
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
+            _loginState.value = LoginState.Loading
             try {
                 val passwordHash = PasswordHasher.hashPassword(password)
                 val user = withContext(Dispatchers.IO) {
@@ -20,19 +24,21 @@ class LoginViewModel(private val database: AppDatabase) : ViewModel() {
                 }
                 
                 if (user != null) {
-                    loginResult.postValue(LoginResult.Success(user.email))
+                    _loginState.value = LoginState.Success(user.email)
                 } else {
-                    loginResult.postValue(LoginResult.Error("Nieprawidłowy email lub hasło"))
+                    _loginState.value = LoginState.Error("Nieprawidłowy email lub hasło")
                 }
             } catch (e: Exception) {
-                loginResult.postValue(LoginResult.Error("Błąd logowania: ${e.message}"))
+                _loginState.value = LoginState.Error("Błąd logowania: ${e.message}")
             }
         }
     }
 }
 
-sealed class LoginResult {
-    data class Success(val email: String) : LoginResult()
-    data class Error(val message: String) : LoginResult()
+sealed class LoginState {
+    object Idle : LoginState()
+    object Loading : LoginState()
+    data class Success(val email: String) : LoginState()
+    data class Error(val message: String) : LoginState()
 }
 

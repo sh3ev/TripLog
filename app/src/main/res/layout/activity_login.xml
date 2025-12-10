@@ -90,7 +90,7 @@
                     android:layout_marginTop="8dp"
                     android:background="@drawable/background_edittext"
                     android:ems="10"
-                    android:hint="Enter your email"
+                    android:hint="Wprowadź email"
                     android:inputType="textEmailAddress"
                     android:padding="8dp"
                     android:textAlignment="center"
@@ -118,7 +118,7 @@
                     android:id="@+id/textView6"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Password"
+                    android:text="Hasło"
                     android:textSize="16sp"
                     android:textColor="#215F1F"/>
 
@@ -129,7 +129,7 @@
                     android:layout_marginTop="8dp"
                     android:background="@drawable/background_edittext"
                     android:ems="10"
-                    android:hint="Enter your password"
+                    android:hint="Wprowadź hasło"
                     android:inputType="textPassword"
                     android:padding="8dp"
                     android:textAlignment="center"
@@ -165,7 +165,7 @@
                     android:id="@+id/textView4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="OR"
+                    android:text="LUB"
                     android:layout_margin="16dp"/>
 
                 <View
@@ -195,10 +195,18 @@
                 android:id="@+id/textRegisterLink"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Don't have an account? Register"
+                android:text="Nie masz konta? Zarejestruj się"
                 android:linksClickable="true"
                 android:textAlignment="center"
                 android:textColor="#000000"/>
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
 
             <androidx.appcompat.widget.AppCompatButton
                 style="android:style/Widget.Button"
@@ -207,7 +215,7 @@
                 android:layout_width="200dp"
 
                 android:layout_height="wrap_content"
-                android:text="Login"
+                android:text="Zaloguj"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
                 android:background="@drawable/background_btn"

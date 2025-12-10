@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private var currentUserEmail: String? = null
     private lateinit var tripAdapter: TripAdapter
     private var searchJob: Job? = null
+    private var backPressedTime: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -101,11 +102,13 @@ class MainActivity : AppCompatActivity() {
                     // If search is empty, load all trips
                     database.tripDao().getTripsByUser(email).collect { trips ->
                         tripAdapter.submitList(trips)
+                        updateEmptyState(trips.isEmpty())
                     }
                 } else {
                     // Search trips by query
                     database.tripDao().searchTrips(email, query).collect { trips ->
                         tripAdapter.submitList(trips)
+                        updateEmptyState(trips.isEmpty())
                     }
                 }
             }
@@ -151,9 +154,15 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 database.tripDao().getTripsByUser(email).collect { trips ->
                     tripAdapter.submitList(trips)
+                    updateEmptyState(trips.isEmpty())
                 }
             }
         }
+    }
+
+    private fun updateEmptyState(isEmpty: Boolean) {
+        binding.emptyStateLayout.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        binding.recyclerViewTrips.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 
 
@@ -216,6 +225,14 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.IO) {
+                    // Pobierz i usuń fizyczne pliki zdjęć
+                    val images = database.tripImageDao().getImagesByTripIdSync(trip.id)
+                    images.forEach { image ->
+                        val file = java.io.File(image.imagePath)
+                        if (file.exists()) {
+                            file.delete()
+                        }
+                    }
                     database.tripDao().deleteTrip(trip)
                 }
                 Toast.makeText(this@MainActivity, "Podróż usunięta", Toast.LENGTH_SHORT).show()
@@ -223,5 +240,16 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Błąd usuwania: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        if (backPressedTime + 2000 > System.currentTimeMillis()) {
+            super.onBackPressed()
+            return
+        } else {
+            Toast.makeText(this, "Naciśnij ponownie, aby wyjść", Toast.LENGTH_SHORT).show()
+        }
+        backPressedTime = System.currentTimeMillis()
     }
 }

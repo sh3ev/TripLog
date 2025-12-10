@@ -39,5 +39,12 @@
     <!-- Gradient w nagłówku -->
     <color name="auth_green_start">#00985B</color>
     <color name="auth_green_end">#00C853</color>
+    
+    <!-- Dodatkowe kolory UI -->
+    <color name="text_dark_green">#215F1F</color>
+    <color name="text_gray">#717171</color>
+    <color name="text_light_gray">#999999</color>
+    <color name="divider_gray">#707070</color>
+    <color name="login_background">#EDEDF7</color>
 
 </resources>

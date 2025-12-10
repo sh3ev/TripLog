@@ -113,7 +113,7 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun setupLoginLink() {
         val textView = binding.textRegisterLink
-        val fullText = "Already have an account? Login"
+        val fullText = "Masz już konto? Zaloguj się"
         val spannableString = SpannableString(fullText)
 
         val clickableSpan = object : ClickableSpan() {
@@ -129,8 +129,8 @@ class RegisterActivity : AppCompatActivity() {
             }
         }
 
-        val startIndex = fullText.indexOf("Login")
-        val endIndex = startIndex + "Login".length
+        val startIndex = fullText.indexOf("Zaloguj się")
+        val endIndex = startIndex + "Zaloguj się".length
         spannableString.setSpan(clickableSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
         textView.text = spannableString

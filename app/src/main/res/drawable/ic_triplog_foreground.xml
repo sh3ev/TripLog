@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Tło koło -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0"/>
+    
+    <!-- Lokalizacja pin -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30c-8.84,0 -16,7.16 -16,16c0,12 16,26 16,26s16,-14 16,-26c0,-8.84 -7.16,-16 -16,-16zM54,51c-2.76,0 -5,-2.24 -5,-5s2.24,-5 5,-5 5,2.24 5,5 -2.24,5 -5,5z"/>
+    
+    <!-- Mała ikona aparatu/zdjęcia -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M68,58h-2l-1,-1h-4l-1,1h-2c-1.1,0 -2,0.9 -2,2v6c0,1.1 0.9,2 2,2h10c1.1,0 2,-0.9 2,-2v-6c0,-1.1 -0.9,-2 -2,-2zM63,66c-1.66,0 -3,-1.34 -3,-3s1.34,-3 3,-3 3,1.34 3,3 -1.34,3 -3,3z"/>
+
+</vector>

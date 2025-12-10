@@ -1,32 +1,55 @@
-# TripLog - Dziennik Podróży z Galerią i Pogodą
+# TripLog - Dziennik Podróży 🌍✈️
 
-Aplikacja Android do zarządzania podróżami z funkcjami galerii zdjęć, map i pobierania aktualnej pogody.
+Polska aplikacja Android do zarządzania podróżami z funkcjami galerii zdjęć, map i pobierania aktualnej pogody.
 
 ## Funkcje
 
-- ✅ Logowanie i rejestracja użytkowników (SHA-256 hash hasła)
-- ✅ Lista podróży z miniaturami pierwszego zdjęcia
-- ✅ **Dodawanie wielu zdjęć do każdej podróży** - możliwość wyboru wielu zdjęć naraz
-- ✅ **Galeria zdjęć w szczegółach podróży** - poziome przewijanie między zdjęciami
-- ✅ **Pełnoekranowy widok zdjęć** - kliknięcie na zdjęcie otwiera pełnoekranowy widok z możliwością przełączania między zdjęciami
-- ✅ Dodawanie/edycja podróży z możliwością usuwania pojedynczych zdjęć
-- ✅ Pobieranie aktualnej lokalizacji (GPS)
-- ✅ **Mapa z zaznaczoną lokalizacją** - interaktywna mapa OpenStreetMap w szczegółach podróży
-- ✅ Pobieranie aktualnej pogody z OpenWeather API
-- ✅ **Wyszukiwanie podróży** - wyszukiwanie w czasie rzeczywistym po tytule i opisie
-- ✅ Menu użytkownika (wylogowanie) dostępne po kliknięciu w avatar
+### 🔐 Autoryzacja
+- Logowanie i rejestracja użytkowników
+- Bezpieczne hashowanie haseł (SHA-256)
+- Automatyczne logowanie przy kolejnych uruchomieniach
+- Potwierdzenie wyjścia z aplikacji (dwukrotne wstecz)
+
+### 📸 Zarządzanie podróżami
+- Lista podróży z miniaturami pierwszego zdjęcia
+- Dodawanie wielu zdjęć do każdej podróży
+- Galeria zdjęć w szczegółach podróży (poziome przewijanie)
+- Pełnoekranowy widok zdjęć z możliwością przełączania
+- Wyszukiwanie podróży w czasie rzeczywistym (po tytule i opisie)
+- Edycja i usuwanie podróży z automatycznym czyszczeniem plików zdjęć
+- Komunikat "Brak podróży" gdy lista jest pusta
+
+### 🗺️ Lokalizacja i mapy
+- Pobieranie aktualnej lokalizacji GPS
+- Interaktywna mapa OpenStreetMap w szczegółach podróży
+- Wyświetlanie współrzędnych geograficznych
+
+### ☁️ Pogoda
+- Pobieranie aktualnej pogody z OpenWeather API
+- Automatyczne pobieranie pogody przy wejściu w szczegóły podróży
+- Możliwość ręcznego odświeżenia danych pogodowych
+- Zapisywanie danych pogodowych w bazie
+
+### 🎨 Interfejs użytkownika
+- Całkowicie polski interfejs
+- Material Design
+- Loading states przy logowaniu
+- DatePicker z ograniczeniem do dzisiejszej daty
+- Menu użytkownika (wylogowanie) po kliknięciu w avatar
 
 ## Technologie
 
 - **Kotlin** - język programowania
+- **MVVM-lite** - architektura aplikacji
 - **Room (SQLite)** - lokalna baza danych z migracjami
-- **Retrofit** - komunikacja z API
-- **Coroutines** - asynchroniczne operacje
-- **Flow** - reaktywne strumienie danych
+- **Retrofit** - komunikacja z API pogodowym
+- **Coroutines + Flow** - asynchroniczne operacje i reaktywne strumienie
+- **StateFlow** - zarządzanie stanem UI w ViewModelach
 - **FusedLocationProviderClient** - lokalizacja GPS
-- **RecyclerView** - lista podróży i galeria zdjęć
+- **RecyclerView + ListAdapter** - lista podróży i galeria zdjęć
+- **LruCache** - cachowanie bitmap dla wydajności
 - **ViewPager2** - pełnoekranowy widok zdjęć
-- **WebView** - wyświetlanie map OpenStreetMap (Leaflet)
+- **WebView + Leaflet** - wyświetlanie map OpenStreetMap
 - **ViewBinding** - binding widoków
 - **Material Design** - komponenty UI
 
@@ -101,6 +124,8 @@ export OPENWEATHER_API_KEY=twój_klucz_api
 
 ```
 app/src/main/java/com/example/triplog/
+├── config/                # Konfiguracja (klucze API)
+│   └── ApiConfig.kt
 ├── data/
 │   ├── entities/          # Encje Room (UserEntity, TripEntity, TripImageEntity)
 │   ├── dao/               # DAO dla operacji na bazie danych
@@ -114,33 +139,47 @@ app/src/main/java/com/example/triplog/
 │   └── WeatherResponse.kt # Modele odpowiedzi API
 ├── ui/
 │   ├── login/             # Ekran logowania
+│   │   ├── LoginActivity.kt
+│   │   ├── LoginViewModel.kt
+│   │   └── LoginViewModelFactory.kt
 │   ├── register/          # Ekran rejestracji
-│   ├── main/              # Główny ekran z listą podróży i wyszukiwaniem
+│   │   └── RegisterActivity.kt
+│   ├── main/              # Główny ekran z listą podróży
 │   │   └── MainActivity.kt
 │   └── trips/             # Ekrany związane z podróżami
-│       ├── AddTripActivity.kt      # Dodawanie/edycja podróży z wieloma zdjęciami
-│       ├── TripDetailsActivity.kt  # Szczegóły podróży z galerią, mapą i pogodą
-│       ├── FullscreenImageActivity.kt # Pełnoekranowy widok zdjęć
-│       ├── TripAdapter.kt          # Adapter dla listy podróży
-│       ├── ImageGalleryAdapter.kt  # Adapter dla galerii zdjęć
-│       ├── SelectedImageAdapter.kt # Adapter dla wybranych zdjęć podczas dodawania
-│       └── FullscreenImageAdapter.kt # Adapter dla ViewPager2
-├── utils/                 # Narzędzia pomocnicze
-│   ├── SharedPreferencesHelper.kt
-│   └── PasswordHasher.kt
-└── config/                # Konfiguracja (klucze API)
-    └── ApiConfig.kt
+│       ├── AddTripActivity.kt           # Dodawanie/edycja podróży
+│       ├── TripDetailsActivity.kt       # Szczegóły podróży
+│       ├── TripDetailsViewModel.kt      # ViewModel szczegółów
+│       ├── TripDetailsViewModelFactory.kt
+│       ├── FullscreenImageActivity.kt   # Pełnoekranowy widok zdjęć
+│       ├── TripAdapter.kt               # Adapter listy podróży
+│       ├── ImageGalleryAdapter.kt       # Adapter galerii zdjęć
+│       ├── SelectedImageAdapter.kt      # Adapter wybranych zdjęć
+│       └── FullscreenImageAdapter.kt    # Adapter ViewPager2
+└── utils/                 # Narzędzia pomocnicze
+    ├── SharedPreferencesHelper.kt
+    └── PasswordHasher.kt
 ```
+
+## Zrzuty ekranu
+
+| Logowanie | Lista podróży | Szczegóły podróży |
+|-----------|---------------|-------------------|
+| ![Login](screenshots/login.png) | ![List](screenshots/list.png) | ![Details](screenshots/details.png) |
 
 ## Baza danych
 
 Aplikacja używa Room Database z następującymi tabelami:
 
-- **users** - dane użytkowników (email, hasło, imię)
-- **trips** - podstawowe informacje o podróżach (tytuł, opis, data, lokalizacja, pogoda)
+- **users** - dane użytkowników (email, hasło SHA-256, imię)
+- **trips** - informacje o podróżach (tytuł, opis, data, lokalizacja GPS, pogoda)
 - **trip_images** - zdjęcia podróży (relacja 1:N z trips, z indeksem kolejności)
 
-Baza danych automatycznie migruje z wersji 1 do wersji 2 przy pierwszym uruchomieniu po aktualizacji.
+### Relacje
+- `UserEntity` → `TripEntity` (1:N, CASCADE DELETE)
+- `TripEntity` → `TripImageEntity` (1:N, CASCADE DELETE)
+
+Baza danych automatycznie migruje z wersji 1 do wersji 2 przy pierwszym uruchomieniu.
 
 ## Bezpieczeństwo
 
@@ -158,11 +197,28 @@ Baza danych automatycznie migruje z wersji 1 do wersji 2 przy pierwszym uruchomi
 - Kotlin 1.9+
 - Gradle 8.0+
 
+## Budowanie projektu
+
+```bash
+# Sklonuj repozytorium
+git clone https://github.com/sh3ev/TripLog.git
+cd TripLog
+
+# Skonfiguruj klucz API
+echo "OPENWEATHER_API_KEY=twój_klucz_api" >> local.properties
+
+# Zbuduj projekt
+./gradlew assembleDebug
+
+# Zainstaluj na podłączonym urządzeniu
+./gradlew installDebug
+```
+
 ## Licencja
 
-Ten projekt jest przykładem edukacyjnym.
+MIT License - zobacz plik [LICENSE](LICENSE)
 
 ## Autor
 
-Projekt stworzony jako przykład aplikacji Android z wykorzystaniem Room, Retrofit i innych nowoczesnych technologii.
+[@sh3ev](https://github.com/sh3ev)
 

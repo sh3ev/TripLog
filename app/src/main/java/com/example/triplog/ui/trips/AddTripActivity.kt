@@ -130,6 +130,9 @@ class AddTripActivity : AppCompatActivity() {
             day
         )
         
+        // Ogranicz datę do dzisiaj (podróże są z przeszłości)
+        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
+        
         datePickerDialog.show()
     }
 
@@ -274,7 +277,17 @@ class AddTripActivity : AppCompatActivity() {
                     
                     withContext(Dispatchers.IO) {
                         database.tripDao().updateTrip(updatedTrip)
-                        // Delete old images and insert new ones
+                        // Usuń stare pliki zdjęć, które nie są już wybrane
+                        val oldImages = database.tripImageDao().getImagesByTripIdSync(tripId!!)
+                        oldImages.forEach { image ->
+                            if (!selectedImagePaths.contains(image.imagePath)) {
+                                val file = java.io.File(image.imagePath)
+                                if (file.exists()) {
+                                    file.delete()
+                                }
+                            }
+                        }
+                        // Delete old images from DB and insert new ones
                         database.tripImageDao().deleteImagesByTripId(tripId!!)
                     }
                     tripId!!

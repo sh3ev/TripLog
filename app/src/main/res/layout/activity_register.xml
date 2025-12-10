@@ -61,7 +61,7 @@
                 android:id="@+id/textView2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Signup"
+                android:text="Rejestracja"
                 android:textAlignment="center"
                 android:textColor="#215F1F"
                 android:textSize="40sp"
@@ -85,7 +85,7 @@
                         android:id="@+id/textFirstName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="First Name"
+                        android:text="Imię"
                         android:textColor="#215F1F"
                         android:textSize="16sp" />
 
@@ -96,7 +96,7 @@
                         android:layout_marginTop="8dp"
                         android:background="@drawable/background_edittext"
                         android:ems="10"
-                        android:hint="Your first name"
+                        android:hint="Twoje imię"
                         android:inputType="text|textPersonName"
                         android:padding="8dp"
                         android:textAlignment="center"
@@ -125,7 +125,7 @@
                         android:id="@+id/textLastName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Last Name"
+                        android:text="Nazwisko"
                         android:textColor="#215F1F"
                         android:textSize="16sp" />
 
@@ -136,7 +136,7 @@
                         android:layout_marginTop="8dp"
                         android:background="@drawable/background_edittext"
                         android:ems="10"
-                        android:hint="yout last name"
+                        android:hint="Twoje nazwisko"
                         android:inputType="text|textPersonName"
                         android:padding="8dp"
                         android:textAlignment="center"
@@ -176,7 +176,7 @@
                     android:layout_marginTop="8dp"
                     android:background="@drawable/background_edittext"
                     android:ems="10"
-                    android:hint="Enter your email"
+                    android:hint="Wprowadź email"
                     android:inputType="textEmailAddress"
                     android:padding="8dp"
                     android:textAlignment="center"
@@ -203,7 +203,7 @@
                     android:id="@+id/textPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Password"
+                    android:text="Hasło"
                     android:textSize="16sp"
                     android:textColor="#215F1F"/>
 
@@ -214,7 +214,7 @@
                     android:layout_marginTop="8dp"
                     android:background="@drawable/background_edittext"
                     android:ems="10"
-                    android:hint="Enter your password"
+                    android:hint="Wprowadź hasło"
                     android:inputType="textPassword"
                     android:padding="8dp"
                     android:textAlignment="center"
@@ -244,7 +244,7 @@
                     android:id="@+id/textRetypePassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Retype Password"
+                    android:text="Powtórz hasło"
                     android:textColor="#215F1F"
                     android:textSize="16sp" />
 
@@ -255,7 +255,7 @@
                     android:layout_marginTop="8dp"
                     android:background="@drawable/background_edittext"
                     android:ems="10"
-                    android:hint="Retype your password"
+                    android:hint="Powtórz hasło"
                     android:inputType="textPassword"
                     android:padding="8dp"
                     android:textAlignment="center"
@@ -278,7 +278,7 @@
                 android:layout_width="200dp"
 
                 android:layout_height="wrap_content"
-                android:text="Signup"
+                android:text="Zarejestruj się"
                 android:textColor="#ffffff"
                 android:textStyle="bold"
                 android:background="@drawable/background_btn"
@@ -290,7 +290,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:linksClickable="true"
-                android:text="Already have an account? Login"
+                android:text="Masz już konto? Zaloguj się"
                 android:textAlignment="center"
                 android:textColor="#000000" />
         </LinearLayout>

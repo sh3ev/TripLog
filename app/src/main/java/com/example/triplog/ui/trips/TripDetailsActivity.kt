@@ -113,6 +113,11 @@ class TripDetailsActivity : AppCompatActivity() {
                         
                         // Show map
                         showMap(lat, lon)
+                        
+                        // Automatycznie pobierz pogodę jeśli brak zapisanej
+                        if (trip.weatherSummary.isNullOrEmpty()) {
+                            viewModel.fetchWeather(lat, lon)
+                        }
                     } else {
                         binding.textViewLocation.text = "Brak lokalizacji"
                         binding.buttonRefreshWeather.isEnabled = false
@@ -242,15 +247,5 @@ class TripDetailsActivity : AppCompatActivity() {
         webView.loadDataWithBaseURL("https://example.com", html, "text/html", "UTF-8", null)
     }
 
-}
-
-class TripDetailsViewModelFactory(private val database: AppDatabase) : androidx.lifecycle.ViewModelProvider.Factory {
-    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(TripDetailsViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return TripDetailsViewModel(database) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
 }
 

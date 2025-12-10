@@ -62,7 +62,7 @@
                     android:ems="10"
                     android:textColor="#717171"
                     android:textColorHint="#717171"
-                    android:hint="Wyszkukaj podróż"
+                    android:hint="Wyszukaj podróż"
                     android:inputType="text"
                     android:padding="16dp"
 
@@ -98,6 +98,40 @@
                     android:textColor="#ffffff"
                     android:textSize="16sp"
                     android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/emptyStateLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:alpha="0.5"
+                        android:src="@drawable/ic_empty_trips" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Brak podróży"
+                        android:textColor="#717171"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Dodaj swoją pierwszą podróż!"
+                        android:textColor="#999999"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerViewTrips"

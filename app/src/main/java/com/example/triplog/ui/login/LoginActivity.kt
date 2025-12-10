@@ -10,7 +10,9 @@ import android.text.style.ClickableSpan
 import android.util.Patterns
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.triplog.R
 import com.example.triplog.data.AppDatabase
 import com.example.triplog.databinding.ActivityLoginBinding
@@ -65,8 +67,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         setupRegisterLink()
-
-        observeLoginResult()
+        observeLoginState()
     }
 
     private fun clearErrors() {
@@ -80,7 +81,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun setupRegisterLink() {
         val textView = binding.textRegisterLink
-        val fullText = "Don't have an account? Register"
+        val fullText = "Nie masz konta? Zarejestruj się"
         val spannableString = SpannableString(fullText)
         val clickableSpan = object : ClickableSpan() {
             override fun onClick(widget: View) {
@@ -94,43 +95,48 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        val startIndex = fullText.indexOf("Register")
-        val endIndex = startIndex + "Register".length
+        val startIndex = fullText.indexOf("Zarejestruj się")
+        val endIndex = startIndex + "Zarejestruj się".length
         spannableString.setSpan(clickableSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
         textView.text = spannableString
         textView.movementMethod = LinkMovementMethod.getInstance()
     }
 
-    private fun observeLoginResult() {
+    private fun observeLoginState() {
         lifecycleScope.launch {
-            viewModel.loginResult.observe(this@LoginActivity) { result ->
-                when (result) {
-                    is LoginResult.Success -> {
-                        SharedPreferencesHelper.saveLoggedInUser(this@LoginActivity, result.email)
-                        navigateToMain()
-                    }
-                    is LoginResult.Error -> {
-                        binding.textViewPasswordError.text = result.message
-                        binding.textViewPasswordError.visibility = View.VISIBLE
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.loginState.collect { state ->
+                    when (state) {
+                        is LoginState.Idle -> {
+                            showLoading(false)
+                        }
+                        is LoginState.Loading -> {
+                            showLoading(true)
+                        }
+                        is LoginState.Success -> {
+                            showLoading(false)
+                            SharedPreferencesHelper.saveLoggedInUser(this@LoginActivity, state.email)
+                            navigateToMain()
+                        }
+                        is LoginState.Error -> {
+                            showLoading(false)
+                            binding.textViewPasswordError.text = state.message
+                            binding.textViewPasswordError.visibility = View.VISIBLE
+                        }
                     }
                 }
             }
         }
     }
 
+    private fun showLoading(show: Boolean) {
+        binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
+        binding.buttonLogin.isEnabled = !show
+    }
+
     private fun navigateToMain() {
         startActivity(Intent(this, MainActivity::class.java))
         finish()
-    }
-}
-
-class LoginViewModelFactory(private val database: AppDatabase) : androidx.lifecycle.ViewModelProvider.Factory {
-    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return LoginViewModel(database) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
