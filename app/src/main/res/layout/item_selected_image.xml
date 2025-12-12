@@ -15,7 +15,7 @@
             android:id="@+id/imageViewSelected"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="Wybrane zdjęcie"
+            android:contentDescription="@string/back_button_text"
             android:scaleType="centerCrop" />
 
         <ImageButton
@@ -24,11 +24,11 @@
             android:layout_height="32dp"
             android:layout_gravity="top|end"
             android:layout_margin="8dp"
-            android:background="@android:color/black"
             android:alpha="0.7"
+            android:background="@android:color/black"
             android:contentDescription="Usuń zdjęcie"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
     </FrameLayout>
 

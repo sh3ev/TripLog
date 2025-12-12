@@ -33,19 +33,7 @@
     <color name="secondary_dark">@color/accent_green_dark</color>
     <color name="secondary_light">@color/accent_green_light</color>
 
-    <!-- Tło ekranu logowania/rejestracji -->
-    <color name="auth_background">#F4F6F8</color>
-
-    <!-- Gradient w nagłówku -->
-    <color name="auth_green_start">#00985B</color>
-    <color name="auth_green_end">#00C853</color>
-    
-    <!-- Dodatkowe kolory UI -->
-    <color name="text_dark_green">#215F1F</color>
-    <color name="text_gray">#717171</color>
-    <color name="text_light_gray">#999999</color>
-    <color name="divider_gray">#707070</color>
+    <!-- Divider -->
     <color name="divider_dark">#FF3D3D3D</color>
-    <color name="login_background">#EDEDF7</color>
 
 </resources>

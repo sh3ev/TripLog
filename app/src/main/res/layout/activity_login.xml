@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -24,9 +23,11 @@
             android:background="@drawable/background_logo_circle">
 
             <ImageView
-                android:layout_width="56dp"
-                android:layout_height="56dp"
+                android:id="@+id/imageViewLogo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
+                android:contentDescription="@string/logo_decritpion"
                 android:src="@drawable/ic_triplog_foreground" />
 
         </FrameLayout>
@@ -36,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="TripLog"
+            android:text="@string/login_title"
             android:textColor="@color/text_primary"
             android:textSize="32sp"
             android:textStyle="bold" />
@@ -45,7 +46,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Twój dziennik podróży"
+            android:text="@string/login_subtitle"
             android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
@@ -59,17 +60,18 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Email"
+                android:text="@string/email_label"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
 
             <EditText
                 android:id="@+id/editTextEmail"
+                android:autofillHints="emailAddress"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/background_input_dark"
-                android:hint="Wprowadź email"
+                android:hint="@string/email_hint"
                 android:inputType="textEmailAddress"
                 android:paddingHorizontal="16dp"
                 android:textColor="@color/text_primary"
@@ -83,7 +85,7 @@
                 android:layout_marginTop="4dp"
                 android:textColor="#FF6B6B"
                 android:textSize="12sp"
-                android:visibility="gone"
+                android:visibility="visible"
                 tools:text="Nieprawidłowy email" />
 
         </LinearLayout>
@@ -97,7 +99,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Hasło"
+                android:text="@string/password_label"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
 
@@ -106,8 +108,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:layout_marginTop="8dp"
+                android:autofillHints="password"
                 android:background="@drawable/background_input_dark"
-                android:hint="Wprowadź hasło"
+                android:hint="@string/password_hint"
                 android:inputType="textPassword"
                 android:paddingHorizontal="16dp"
                 android:textColor="@color/text_primary"
@@ -121,7 +124,7 @@
                 android:layout_marginTop="4dp"
                 android:textColor="#FF6B6B"
                 android:textSize="12sp"
-                android:visibility="gone"
+                android:visibility="visible"
                 tools:text="Nieprawidłowe hasło" />
 
         </LinearLayout>
@@ -133,7 +136,7 @@
             android:layout_height="52dp"
             android:layout_marginTop="32dp"
             android:background="@drawable/background_button_primary"
-            android:text="Zaloguj się"
+            android:text="@string/login_button_text"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -165,7 +168,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="16dp"
-                android:text="lub"
+                android:text="@string/login_separator_or"
                 android:textColor="@color/text_hint"
                 android:textSize="13sp" />
 
@@ -184,7 +187,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:padding="8dp"
-            android:text="Nie masz konta? Zarejestruj się"
+            android:text="@string/register_link_text"
             android:textColor="@color/accent_blue"
             android:textSize="14sp" />
 

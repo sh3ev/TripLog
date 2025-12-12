@@ -1,12 +1,15 @@
 package com.example.triplog.ui.profile
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.lifecycleScope
 import com.example.triplog.data.AppDatabase
 import com.example.triplog.databinding.ActivityProfileBinding
@@ -82,11 +85,36 @@ class ProfileActivity : AppCompatActivity() {
                         val file = File(path)
                         if (file.exists()) {
                             val bitmap = BitmapFactory.decodeFile(path)
-                            binding.imageViewProfile.setImageBitmap(bitmap)
+                            val rotatedBitmap = rotateBitmapIfRequired(bitmap, path)
+                            binding.imageViewProfile.setImageBitmap(rotatedBitmap)
                         }
                     }
                 }
             }
+        }
+    }
+
+    private fun rotateBitmapIfRequired(bitmap: Bitmap, imagePath: String): Bitmap {
+        return try {
+            val exif = ExifInterface(imagePath)
+            val orientation = exif.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
+            
+            val matrix = Matrix()
+            when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+                ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.preScale(-1f, 1f)
+                ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.preScale(1f, -1f)
+                else -> return bitmap
+            }
+            
+            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+        } catch (e: Exception) {
+            bitmap
         }
     }
 
@@ -130,9 +158,10 @@ class ProfileActivity : AppCompatActivity() {
                     imageFile.absolutePath
                 }
                 
-                // Załaduj nowe zdjęcie
+                // Załaduj nowe zdjęcie z korektą orientacji
                 val bitmap = BitmapFactory.decodeFile(imagePath)
-                binding.imageViewProfile.setImageBitmap(bitmap)
+                val rotatedBitmap = rotateBitmapIfRequired(bitmap, imagePath)
+                binding.imageViewProfile.setImageBitmap(rotatedBitmap)
                 
                 Toast.makeText(this@ProfileActivity, "Zdjęcie zaktualizowane", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {

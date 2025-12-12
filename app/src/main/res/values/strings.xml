@@ -1,3 +1,48 @@
 <resources>
     <string name="app_name">TripLog</string>
+    <string name="register_title">Rejestracja</string>
+
+
+
+
+
+
+
+<!--    opisy przycisków-->
+    <string name="back_button_text">Wstecz</string>
+    <string name="login_button_text">Zaloguj się</string>
+    <string name="register_button_text">Zarejestruj się</string>
+
+
+<!--    formularze - opisy błędów logowania i rejestracji-->
+    <string name="login_error_title">Błąd logowania</string>
+    <string name="login_error_message">Nieprawidłowy email lub hasło</string>
+    <string name="register_error_title">Błąd rejestracji</string>
+    <string name="register_error_message">Wystąpił błąd podczas rejestracji</string>
+    <string name="register_error_email_taken">Ten email jest już zajęty</string>
+    <string name="register_error_password_mismatch">Hasła nie są takie same</string>
+    <string name="register_error_invalid_email">Nieprawidłowy email</string>
+
+    <string name="email_label">Email</string>
+    <string name="email_hint">Wprowadź email</string>
+    <string name="password_label">Hasło</string>
+    <string name="password_hint">Wprowadź hasło</string>
+    <string name="confirm_password_label">Powtórz hasło</string>
+    <string name="confirm_password_hint">Powtórz hasło</string>
+    <string name="first_name_label">Twoje imię</string>
+    <string name="last_name_label">Twoje nazwisko</string>
+
+    <string name="login_separator_or">lub</string>
+    <string name="register_link_text">Nie masz konta? Zarejestruj się</string>
+    <string name="login_link_text">Masz już konto? Zaloguj się</string>
+
+<!--    decritpions-->
+    <string name="logo_decritpion">Logo</string>
+
+
+<!--login activity-->
+    <string name="login_title">TripLog</string>
+    <string name="login_subtitle">Twój dziennik podróży</string>
+
+
 </resources>

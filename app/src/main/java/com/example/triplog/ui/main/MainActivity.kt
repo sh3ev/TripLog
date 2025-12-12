@@ -1,7 +1,9 @@
 package com.example.triplog.ui.main
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -10,6 +12,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.triplog.R
@@ -88,7 +91,8 @@ class MainActivity : AppCompatActivity() {
                     val file = File(it.profileImagePath!!)
                     if (file.exists()) {
                         val bitmap = BitmapFactory.decodeFile(it.profileImagePath)
-                        binding.imageView3.setImageBitmap(bitmap)
+                        val rotatedBitmap = rotateBitmapIfRequired(bitmap, it.profileImagePath!!)
+                        binding.imageView3.setImageBitmap(rotatedBitmap)
                     } else {
                         binding.imageView3.setImageResource(R.drawable.ic_person_placeholder)
                     }
@@ -263,5 +267,29 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Naciśnij ponownie, aby wyjść", Toast.LENGTH_SHORT).show()
         }
         backPressedTime = System.currentTimeMillis()
+    }
+
+    private fun rotateBitmapIfRequired(bitmap: Bitmap, imagePath: String): Bitmap {
+        return try {
+            val exif = ExifInterface(imagePath)
+            val orientation = exif.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
+            
+            val matrix = Matrix()
+            when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+                ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.preScale(-1f, 1f)
+                ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.preScale(1f, -1f)
+                else -> return bitmap
+            }
+            
+            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+        } catch (e: Exception) {
+            bitmap
+        }
     }
 }
