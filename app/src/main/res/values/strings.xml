@@ -59,6 +59,10 @@
     <string name="empty_current_hint">Nie jesteś teraz w podróży</string>
     <string name="empty_past">Brak przeszłych podróży</string>
     <string name="empty_past_hint">Twoje wspomnienia pojawią się tutaj</string>
+    <string name="search_trips">Wyszukaj podróże</string>
+    <string name="search_empty_hint">Wpisz nazwę podróży lub lokalizację</string>
+    <string name="no_results">Brak wyników</string>
+    <string name="no_results_hint">Nie znaleziono podróży o takiej nazwie</string>
     <string name="nav_you">Ty</string>
     <string name="nav_settings">Ustawienia</string>
 

@@ -20,6 +20,8 @@ class DateRangePickerActivity : AppCompatActivity() {
         const val EXTRA_LONGITUDE = "longitude"
         const val EXTRA_START_DATE = "start_date"
         const val EXTRA_END_DATE = "end_date"
+        const val EXTRA_EDIT_MODE = "edit_mode"
+        const val EXTRA_TRIP_ID = "trip_id"
     }
 
     private lateinit var binding: ActivityDateRangePickerBinding
@@ -28,6 +30,8 @@ class DateRangePickerActivity : AppCompatActivity() {
     private var locationName: String = ""
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
+    private var isEditMode: Boolean = false
+    private var tripId: Long = 0L
     
     private var startDate: LocalDate? = null
     private var endDate: LocalDate? = null
@@ -53,8 +57,28 @@ class DateRangePickerActivity : AppCompatActivity() {
         locationName = intent.getStringExtra(EXTRA_LOCATION_NAME) ?: ""
         latitude = intent.getDoubleExtra(EXTRA_LATITUDE, 0.0)
         longitude = intent.getDoubleExtra(EXTRA_LONGITUDE, 0.0)
-
-        binding.textViewLocation.text = locationName.split(",").firstOrNull() ?: locationName
+        isEditMode = intent.getBooleanExtra(EXTRA_EDIT_MODE, false)
+        tripId = intent.getLongExtra(EXTRA_TRIP_ID, 0L)
+        
+        // W trybie edycji - pobierz istniejące daty
+        if (isEditMode) {
+            intent.getStringExtra(EXTRA_START_DATE)?.let {
+                startDate = LocalDate.parse(it)
+            }
+            intent.getStringExtra(EXTRA_END_DATE)?.let {
+                endDate = LocalDate.parse(it)
+            }
+            // Ukryj "Jadę do" i pokaż nazwę podróży
+            binding.textViewJadeDo.visibility = android.view.View.GONE
+            binding.textViewLocation.text = locationName
+        } else {
+            binding.textViewLocation.text = locationName.split(",").firstOrNull() ?: locationName
+        }
+        
+        // Zmień tekst przycisku w trybie edycji
+        if (isEditMode) {
+            binding.buttonNext.text = "Zapisz"
+        }
 
         setupCalendar()
         setupClickListeners()
@@ -175,15 +199,26 @@ class DateRangePickerActivity : AppCompatActivity() {
 
         binding.buttonNext.setOnClickListener {
             if (startDate != null && endDate != null) {
-                // Otwórz podgląd pogody
-                val intent = Intent(this, WeatherPreviewActivity::class.java).apply {
-                    putExtra(WeatherPreviewActivity.EXTRA_LOCATION_NAME, locationName)
-                    putExtra(WeatherPreviewActivity.EXTRA_LATITUDE, latitude)
-                    putExtra(WeatherPreviewActivity.EXTRA_LONGITUDE, longitude)
-                    putExtra(WeatherPreviewActivity.EXTRA_START_DATE, startDate.toString())
-                    putExtra(WeatherPreviewActivity.EXTRA_END_DATE, endDate.toString())
+                if (isEditMode) {
+                    // W trybie edycji - zwróć wynik bezpośrednio
+                    val resultIntent = Intent().apply {
+                        putExtra(EXTRA_START_DATE, startDate.toString())
+                        putExtra(EXTRA_END_DATE, endDate.toString())
+                        putExtra(EXTRA_TRIP_ID, tripId)
+                    }
+                    setResult(RESULT_OK, resultIntent)
+                    finish()
+                } else {
+                    // Otwórz podgląd pogody
+                    val intent = Intent(this, WeatherPreviewActivity::class.java).apply {
+                        putExtra(WeatherPreviewActivity.EXTRA_LOCATION_NAME, locationName)
+                        putExtra(WeatherPreviewActivity.EXTRA_LATITUDE, latitude)
+                        putExtra(WeatherPreviewActivity.EXTRA_LONGITUDE, longitude)
+                        putExtra(WeatherPreviewActivity.EXTRA_START_DATE, startDate.toString())
+                        putExtra(WeatherPreviewActivity.EXTRA_END_DATE, endDate.toString())
+                    }
+                    weatherPreviewLauncher.launch(intent)
                 }
-                weatherPreviewLauncher.launch(intent)
             }
         }
     }

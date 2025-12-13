@@ -13,8 +13,8 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,6 +25,7 @@ import com.example.triplog.databinding.ActivityMainBinding
 import com.example.triplog.ui.login.LoginActivity
 import com.example.triplog.ui.profile.ProfileActivity
 import com.example.triplog.ui.trips.AddTripActivity
+import com.example.triplog.ui.trips.DateRangePickerActivity
 import com.example.triplog.ui.trips.TripAdapter
 import com.example.triplog.ui.trips.TripDetailsActivity
 import com.example.triplog.utils.SharedPreferencesHelper
@@ -50,12 +51,27 @@ class MainActivity : AppCompatActivity() {
     
     private var allTrips: List<TripEntity> = emptyList()
     private var currentTabPosition: Int = 0
+    private var isSearchMode: Boolean = false
 
     private val profileLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             loadUserProfile()
+        }
+    }
+    
+    private val dateEditLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val startDate = result.data?.getStringExtra(DateRangePickerActivity.EXTRA_START_DATE)
+            val endDate = result.data?.getStringExtra(DateRangePickerActivity.EXTRA_END_DATE)
+            val tripId = result.data?.getLongExtra(DateRangePickerActivity.EXTRA_TRIP_ID, 0L) ?: 0L
+            
+            if (startDate != null && endDate != null && tripId > 0) {
+                updateTripDates(tripId, startDate, endDate)
+            }
         }
     }
 
@@ -183,6 +199,15 @@ class MainActivity : AppCompatActivity() {
                         // Ustaw padding top dla status bara
                         binding.bottomSheet.setPadding(0, statusBarHeight, 0, 0)
                         (binding.bottomSheet.layoutParams as FrameLayout.LayoutParams).topMargin = 0
+                        
+                        // Przełącz na listę pionową
+                        setRecyclerViewMode(isHorizontal = false)
+                        
+                        // Tryb wyszukiwania - pokazuj pustą listę dopóki nie wpiszesz zapytania
+                        isSearchMode = true
+                        binding.editTextSearch.text.clear()
+                        tripAdapter.submitList(emptyList())
+                        updateEmptyState(true)
                     }
                     BottomSheetBehavior.STATE_HALF_EXPANDED -> {
                         // Środek - pokaż avatar i statystyki, ukryj wyszukiwarkę
@@ -194,6 +219,15 @@ class MainActivity : AppCompatActivity() {
                         // Przywróć margin dla avatara
                         binding.bottomSheet.setPadding(0, 0, 0, 0)
                         (binding.bottomSheet.layoutParams as FrameLayout.LayoutParams).topMargin = (32 * density).toInt()
+                        
+                        // Przełącz na karuzelę horyzontalną
+                        setRecyclerViewMode(isHorizontal = true)
+                        
+                        // Wyjście z trybu wyszukiwania - przywróć filtrowaną listę
+                        if (isSearchMode) {
+                            isSearchMode = false
+                            filterTripsByCategory()
+                        }
                     }
                     BottomSheetBehavior.STATE_COLLAPSED -> {
                         // Na dole - pokazuj tylko avatar i statystyki
@@ -205,6 +239,9 @@ class MainActivity : AppCompatActivity() {
                         // Przywróć margin dla avatara
                         binding.bottomSheet.setPadding(0, 0, 0, 0)
                         (binding.bottomSheet.layoutParams as FrameLayout.LayoutParams).topMargin = (32 * density).toInt()
+                        
+                        // W trybie collapsed też karuzela horyzontalna
+                        setRecyclerViewMode(isHorizontal = true)
                     }
                 }
             }
@@ -333,15 +370,28 @@ class MainActivity : AppCompatActivity() {
         currentUserEmail?.let { email ->
             lifecycleScope.launch {
                 if (query.isBlank()) {
-                    database.tripDao().getTripsByUser(email).collect { trips ->
-                        allTrips = trips
-                        filterTripsByCategory()
-                        binding.textViewTripsCount.text = trips.size.toString()
+                    // W trybie wyszukiwania - pusta lista gdy brak zapytania
+                    if (isSearchMode) {
+                        tripAdapter.submitList(emptyList())
+                        updateEmptyState(true)
+                    } else {
+                        database.tripDao().getTripsByUser(email).collect { trips ->
+                            allTrips = trips
+                            filterTripsByCategory()
+                            binding.textViewTripsCount.text = trips.size.toString()
+                        }
                     }
                 } else {
                     database.tripDao().searchTrips(email, query).collect { trips ->
-                        allTrips = trips
-                        filterTripsByCategory()
+                        // W trybie wyszukiwania - pokaż wszystkie wyniki bez filtrowania
+                        if (isSearchMode) {
+                            tripAdapter.submitList(trips)
+                            updateEmptyState(trips.isEmpty())
+                            updateRecyclerViewPadding(trips.size)
+                        } else {
+                            allTrips = trips
+                            filterTripsByCategory()
+                        }
                     }
                 }
             }
@@ -366,12 +416,36 @@ class MainActivity : AppCompatActivity() {
             onItemClick = { trip -> navigateToTripDetails(trip) },
             onItemLongClick = { },
             onEditClick = { trip -> navigateToEditTrip(trip) },
-            onDeleteClick = { trip -> showDeleteConfirmationDialog(trip) }
+            onDeleteClick = { trip -> showDeleteConfirmationDialog(trip) },
+            onCalendarClick = { trip -> showEditDatesDialog(trip) }
         )
         binding.recyclerViewTrips.apply {
             adapter = tripAdapter
-            layoutManager = LinearLayoutManager(this@MainActivity)
+            // Domyślnie tryb horyzontalny (half-expanded)
+            layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.HORIZONTAL, false)
+            tripAdapter.isHorizontalMode = true
         }
+    }
+    
+    private fun setRecyclerViewMode(isHorizontal: Boolean) {
+        if (tripAdapter.isHorizontalMode == isHorizontal) return
+        
+        // Zapisz aktualną listę
+        val currentList = tripAdapter.currentList.toList()
+        
+        // Zmień tryb adaptera
+        tripAdapter.isHorizontalMode = isHorizontal
+        
+        // Zmień LayoutManager
+        binding.recyclerViewTrips.layoutManager = if (isHorizontal) {
+            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        } else {
+            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        }
+        
+        // Przywróć listę i zaktualizuj padding
+        tripAdapter.submitList(currentList)
+        updateRecyclerViewPadding(currentList.size)
     }
 
     private fun loadTrips() {
@@ -419,6 +493,31 @@ class MainActivity : AppCompatActivity() {
         
         tripAdapter.submitList(filteredTrips)
         updateEmptyState(filteredTrips.isEmpty())
+        updateRecyclerViewPadding(filteredTrips.size)
+    }
+    
+    private fun updateRecyclerViewPadding(itemCount: Int) {
+        // W trybie horyzontalnym, jeśli jest tylko jedna karta, wycentruj ją
+        if (tripAdapter.isHorizontalMode && itemCount == 1) {
+            val displayMetrics = resources.displayMetrics
+            val screenWidth = displayMetrics.widthPixels
+            val cardWidth = (300 * displayMetrics.density).toInt() // 300dp szerokość karty
+            val horizontalPadding = (screenWidth - cardWidth) / 2
+            binding.recyclerViewTrips.setPadding(
+                horizontalPadding.coerceAtLeast(0),
+                0,
+                horizontalPadding.coerceAtLeast(0),
+                (100 * displayMetrics.density).toInt()
+            )
+        } else {
+            val density = resources.displayMetrics.density
+            binding.recyclerViewTrips.setPadding(
+                (20 * density).toInt(),
+                0,
+                (20 * density).toInt(),
+                (100 * density).toInt()
+            )
+        }
     }
 
     private fun updateEmptyState(isEmpty: Boolean) {
@@ -426,32 +525,53 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerViewTrips.visibility = if (isEmpty) View.GONE else View.VISIBLE
         
         if (isEmpty) {
-            // Ustaw tekst i ikonę w zależności od wybranej zakładki
-            val (title, hint, iconRes) = when (currentTabPosition) {
-                0 -> Triple(
-                    getString(R.string.empty_upcoming),
-                    getString(R.string.empty_upcoming_hint),
-                    R.drawable.ic_empty_trips
-                )
-                1 -> Triple(
-                    getString(R.string.empty_current),
-                    getString(R.string.empty_current_hint),
-                    R.drawable.ic_empty_trips
-                )
-                2 -> Triple(
-                    getString(R.string.empty_past),
-                    getString(R.string.empty_past_hint),
-                    R.drawable.ic_empty_trips
-                )
-                else -> Triple(
-                    getString(R.string.all_trips_in_one_place),
-                    getString(R.string.press_plus_to_add_trip),
-                    R.drawable.ic_empty_trips
-                )
+            // W trybie wyszukiwania - specjalny komunikat
+            if (isSearchMode) {
+                val searchQuery = binding.editTextSearch.text.toString()
+                val (title, hint, iconRes) = if (searchQuery.isBlank()) {
+                    Triple(
+                        getString(R.string.search_trips),
+                        getString(R.string.search_empty_hint),
+                        R.drawable.ic_search
+                    )
+                } else {
+                    Triple(
+                        getString(R.string.no_results),
+                        getString(R.string.no_results_hint),
+                        R.drawable.ic_search
+                    )
+                }
+                binding.textViewEmptyTitle.text = title
+                binding.textViewEmptyHint.text = hint
+                binding.imageViewEmptyIcon.setImageResource(iconRes)
+            } else {
+                // Ustaw tekst i ikonę w zależności od wybranej zakładki
+                val (title, hint, iconRes) = when (currentTabPosition) {
+                    0 -> Triple(
+                        getString(R.string.empty_upcoming),
+                        getString(R.string.empty_upcoming_hint),
+                        R.drawable.ic_empty_trips
+                    )
+                    1 -> Triple(
+                        getString(R.string.empty_current),
+                        getString(R.string.empty_current_hint),
+                        R.drawable.ic_empty_trips
+                    )
+                    2 -> Triple(
+                        getString(R.string.empty_past),
+                        getString(R.string.empty_past_hint),
+                        R.drawable.ic_empty_trips
+                    )
+                    else -> Triple(
+                        getString(R.string.all_trips_in_one_place),
+                        getString(R.string.press_plus_to_add_trip),
+                        R.drawable.ic_empty_trips
+                    )
+                }
+                binding.textViewEmptyTitle.text = title
+                binding.textViewEmptyHint.text = hint
+                binding.imageViewEmptyIcon.setImageResource(iconRes)
             }
-            binding.textViewEmptyTitle.text = title
-            binding.textViewEmptyHint.text = hint
-            binding.imageViewEmptyIcon.setImageResource(iconRes)
         }
     }
 
@@ -481,8 +601,33 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
+    private fun showEditDatesDialog(trip: TripEntity) {
+        // Otwórz DateRangePickerActivity w trybie edycji
+        val intent = Intent(this, DateRangePickerActivity::class.java).apply {
+            putExtra(DateRangePickerActivity.EXTRA_EDIT_MODE, true)
+            putExtra(DateRangePickerActivity.EXTRA_TRIP_ID, trip.id)
+            putExtra(DateRangePickerActivity.EXTRA_START_DATE, trip.date)
+            putExtra(DateRangePickerActivity.EXTRA_END_DATE, trip.endDate ?: trip.date)
+            putExtra(DateRangePickerActivity.EXTRA_LOCATION_NAME, trip.title)
+        }
+        dateEditLauncher.launch(intent)
+    }
+    
+    private fun updateTripDates(tripId: Long, startDate: String, endDate: String) {
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                val trip = database.tripDao().getTripById(tripId)
+                trip?.let {
+                    val updatedTrip = it.copy(date = startDate, endDate = endDate)
+                    database.tripDao().updateTrip(updatedTrip)
+                }
+            }
+            Toast.makeText(this@MainActivity, "Daty zaktualizowane", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun showDeleteConfirmationDialog(trip: TripEntity) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this, R.style.DarkAlertDialog)
             .setTitle("Usuń podróż")
             .setMessage("Czy na pewno chcesz usunąć podróż \"${trip.title}\"?")
             .setPositiveButton("Usuń") { _, _ -> deleteTrip(trip) }

@@ -34,8 +34,22 @@ class TripAdapter(
     private val onItemClick: (TripEntity) -> Unit,
     private val onItemLongClick: (TripEntity) -> Unit,
     private val onEditClick: (TripEntity) -> Unit,
-    private val onDeleteClick: (TripEntity) -> Unit
+    private val onDeleteClick: (TripEntity) -> Unit,
+    private val onCalendarClick: (TripEntity) -> Unit = { }
 ) : ListAdapter<TripEntity, TripAdapter.TripViewHolder>(TripDiffCallback()) {
+
+    companion object {
+        const val VIEW_TYPE_VERTICAL = 0
+        const val VIEW_TYPE_HORIZONTAL = 1
+    }
+
+    var isHorizontalMode: Boolean = false
+        set(value) {
+            if (field != value) {
+                field = value
+                notifyDataSetChanged()
+            }
+        }
 
     // Bitmap cache - max 20MB
     private val imageCache: LruCache<String, Bitmap> = object : LruCache<String, Bitmap>(20 * 1024 * 1024) {
@@ -44,9 +58,18 @@ class TripAdapter(
         }
     }
 
+    override fun getItemViewType(position: Int): Int {
+        return if (isHorizontalMode) VIEW_TYPE_HORIZONTAL else VIEW_TYPE_VERTICAL
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TripViewHolder {
+        val layoutRes = if (viewType == VIEW_TYPE_HORIZONTAL) {
+            R.layout.item_trip_horizontal
+        } else {
+            R.layout.item_trip
+        }
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_trip, parent, false)
+            .inflate(layoutRes, parent, false)
         return TripViewHolder(view)
     }
 
@@ -64,7 +87,8 @@ class TripAdapter(
         private val textViewTitle: TextView = itemView.findViewById(R.id.textViewTitle)
         private val textViewDate: TextView = itemView.findViewById(R.id.textViewDate)
         private val textViewCountdown: TextView = itemView.findViewById(R.id.textViewCountdown)
-        private val buttonEdit: LinearLayout = itemView.findViewById(R.id.buttonEdit)
+        private val buttonCalendar: LinearLayout = itemView.findViewById(R.id.buttonCalendar)
+        private val buttonDelete: LinearLayout = itemView.findViewById(R.id.buttonDelete)
         private val buttonMore: LinearLayout = itemView.findViewById(R.id.buttonMore)
         
         private var imageLoadingJob: Job? = null
@@ -134,12 +158,19 @@ class TripAdapter(
                 true
             }
 
-            buttonEdit.setOnClickListener {
-                onEditClick(trip)
+            // Calendar button - edit dates
+            buttonCalendar.setOnClickListener {
+                onCalendarClick(trip)
             }
 
-            buttonMore.setOnClickListener {
+            // Delete button
+            buttonDelete.setOnClickListener {
                 onDeleteClick(trip)
+            }
+
+            // More button - edit trip
+            buttonMore.setOnClickListener {
+                onEditClick(trip)
             }
         }
         
