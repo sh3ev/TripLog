@@ -1,21 +1,19 @@
 # TripLog 🌍✈️
 
-Aplikacja Android do planowania i dokumentowania podróży. Zapisuj wspomnienia, dodawaj zdjęcia i sprawdzaj pogodę w jednym miejscu.
+Aplikacja do planowania i dokumentowania podróży. Zapisuj wspomnienia, dodawaj zdjęcia i sprawdzaj pogodę w jednym miejscu.
 
-## ✨ Główne funkcje
+## ✨ Najważniejsze funkcje
 
-- 📸 **Galeria zdjęć** - dodawaj wiele zdjęć do każdej podróży
-- 🗺️ **Wyszukiwanie lokalizacji** - znajdź miejsce docelowe z podpowiedziami
-- 📅 **Wybór dat** - intuicyjny kalendarz z możliwością wyboru zakresu
-- ☁️ **Prognoza pogody** - sprawdź pogodę na wybrane dni przed wyjazdem
-- 🔍 **Wyszukiwarka** - szybko znajdź swoje podróże
-- 👤 **Profil użytkownika** - personalizuj swoje konto
+- 📸 **Galeria zdjęć** – dodawaj swoje zdjęcia z każdej podróży.
+- 🗺️ **Wybór i edycja lokalizacji** – wyszukiwarka z podpowiedziami, edytowalna karta celu podróży
+- 📅 **Wybór zakresu dat** – planuj daty swoich wyjazdów
+- ☁️ **Prognoza pogody** – automatyczne pobieranie pogody dla wybranej lokalizacji i dat
+- 🔍 **Wyszukiwarka podróży** – szybkie filtrowanie i przeglądanie historii
+- 👤 **Profil użytkownika** – edycja danych, zmiana hasła, personalizacja
+- 🗑️ **Usuwanie i edycja podróży** – pełna kontrola nad swoimi wpisami
 
 ## 📱 Zrzuty ekranu
 
-| Ekran główny | Szczegóły podróży | Profil |
-|:------------:|:-----------------:|:------:|
-| Lista Twoich podróży | Zdjęcia, mapa i pogoda | Edycja danych |
 
 ## 🚀 Instalacja
 
@@ -24,38 +22,34 @@ Aplikacja Android do planowania i dokumentowania podróży. Zapisuj wspomnienia,
 - Android Studio
 
 ### Konfiguracja
-
 1. **Sklonuj repozytorium**
-   \`\`\`bash
+   ```bash
    git clone https://github.com/sh3ev/TripLog.git
    cd TripLog
-   \`\`\`
+   ```
+2. **Dodaj klucze API**
+   - [OpenWeatherMap](https://openweathermap.org/api) – pogoda
 
-2. **Dodaj klucz API pogody**
    
-   Utwórz darmowe konto na [OpenWeatherMap](https://openweathermap.org/api) i dodaj klucz do `local.properties`:
-   \`\`\`properties
+   W pliku `local.properties`:
+   ```properties
    OPENWEATHER_API_KEY=twój_klucz_api
-   \`\`\`
-
+   ```
 3. **Zbuduj i uruchom**
-   \`\`\`bash
+   ```bash
    ./gradlew installDebug
-   \`\`\`
+   ```
 
 ## 🛠️ Technologie
 
-| Kategoria | Technologia |
-|-----------|-------------|
-| Język | Kotlin |
-| Architektura | MVVM |
-| Baza danych | Room |
-| Sieć | Retrofit |
-| Mapy | OpenStreetMap (Leaflet) |
-| Pogoda | OpenWeather API |
-| Lokalizacje | Photon API |
+- **Język:** Kotlin
+- **Architektura:** MVVM, Repository
+- **Baza danych:** Room (SQLite)
+- **Mapy:** Photon
+- **Zdjęcia:** Android Photo Picker (PickMultipleVisualMedia)
+- **UI:** Material Design 3, Material Components
 
-## 📂 Struktura projektu
+## 📂 Struktura projektu (skrót)
 
 ```
 app/src/main/java/com/example/triplog/
@@ -73,7 +67,3 @@ app/src/main/java/com/example/triplog/
 ## 📄 Licencja
 
 MIT License - zobacz [LICENSE](LICENSE)
-
----
-
-Stworzone z ❤️ przez [@sh3ev](https://github.com/sh3ev)

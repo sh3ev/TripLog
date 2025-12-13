@@ -2,10 +2,6 @@
 # Android / Gradle
 # ================================
 
-# AI/Agent folders
-.agent/
-.github/
-
 # Built application files
 *.apk
 *.ap_
