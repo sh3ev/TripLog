@@ -7,6 +7,9 @@ import android.graphics.Matrix
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
+import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -124,11 +127,11 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun showChangePasswordDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_change_password, null)
-        val currentPasswordInput = dialogView.findViewById<TextInputEditText>(R.id.editTextCurrentPassword)
-        val newPasswordInput = dialogView.findViewById<TextInputEditText>(R.id.editTextNewPassword)
-        val confirmPasswordInput = dialogView.findViewById<TextInputEditText>(R.id.editTextConfirmPassword)
+        val currentPasswordInput = dialogView.findViewById<EditText>(R.id.editTextCurrentPassword)
+        val newPasswordInput = dialogView.findViewById<EditText>(R.id.editTextNewPassword)
+        val confirmPasswordInput = dialogView.findViewById<EditText>(R.id.editTextConfirmPassword)
 
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this, R.style.GlowingDarkDialog)
             .setTitle(getString(R.string.profile_change_password))
             .setView(dialogView)
             .setPositiveButton(getString(R.string.save)) { _, _ ->
@@ -139,7 +142,48 @@ class ProfileActivity : AppCompatActivity() {
                 changePassword(currentPassword, newPassword, confirmPassword)
             }
             .setNegativeButton(getString(R.string.cancel), null)
-            .show()
+            .create()
+        
+        dialog.show()
+        
+        // Ustaw custom tło z poświatą i przezroczystością
+        dialog.window?.setBackgroundDrawableResource(R.drawable.background_dialog_glowing)
+        
+        // Obsługa toggle widoczności hasła
+        setupPasswordToggle(dialogView)
+    }
+    
+    private fun setupPasswordToggle(dialogView: View) {
+        val currentPassword = dialogView.findViewById<EditText>(R.id.editTextCurrentPassword)
+        val newPassword = dialogView.findViewById<EditText>(R.id.editTextNewPassword)
+        val confirmPassword = dialogView.findViewById<EditText>(R.id.editTextConfirmPassword)
+        
+        val toggleCurrent = dialogView.findViewById<ImageButton>(R.id.buttonToggleCurrentPassword)
+        val toggleNew = dialogView.findViewById<ImageButton>(R.id.buttonToggleNewPassword)
+        val toggleConfirm = dialogView.findViewById<ImageButton>(R.id.buttonToggleConfirmPassword)
+        
+        setupSingleToggle(currentPassword, toggleCurrent)
+        setupSingleToggle(newPassword, toggleNew)
+        setupSingleToggle(confirmPassword, toggleConfirm)
+    }
+    
+    private fun setupSingleToggle(editText: EditText, toggleButton: ImageButton) {
+        var isPasswordVisible = false
+        
+        toggleButton.setOnClickListener {
+            isPasswordVisible = !isPasswordVisible
+            
+            if (isPasswordVisible) {
+                editText.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                toggleButton.setImageResource(R.drawable.ic_visibility)
+            } else {
+                editText.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                toggleButton.setImageResource(R.drawable.ic_visibility_off)
+            }
+            
+            // Zachowaj pozycję kursora
+            editText.setSelection(editText.text.length)
+        }
     }
 
     private fun updateFirstName(firstName: String) {

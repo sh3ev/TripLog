@@ -11,6 +11,7 @@
     <color name="surface_dark">#CC1E1428</color>
     <color name="surface_variant_dark">#B32A1E38</color>
     <color name="surface_elevated">#992A2035</color>
+    <color name="dialog_glow_surface">#E61E1428</color>
     
     <!-- Accent colors - Pink/Purple -->
     <color name="accent_pink">#FFEC4899</color>
@@ -54,6 +55,9 @@
 
     <!-- Divider -->
     <color name="divider_dark">#40FFFFFF</color>
+    
+    <!-- Password dialog field stroke -->
+    <color name="password_field_stroke">#50FFFFFF</color>
     
     <!-- Danger -->
     <color name="danger">#FFEF4444</color>

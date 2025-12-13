@@ -44,8 +44,27 @@
         <item name="buttonBarNegativeButtonStyle">@style/DialogNegativeButton</item>
     </style>
     
+    <!-- Enhanced Dark Dialog with glow effect for password change -->
+    <style name="GlowingDarkDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/dialog_glow_surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorPrimary">@color/accent_pink</item>
+        <item name="colorSecondary">@color/accent_purple</item>
+        <item name="android:backgroundDimAmount">0.75</item>
+        <item name="shapeAppearanceOverlay">@style/DialogCornerRadiusLarge</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/DialogTitleStyle</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/DialogBodyStyle</item>
+        <item name="buttonBarPositiveButtonStyle">@style/DialogPositiveButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/DialogNegativeButton</item>
+        <item name="android:windowBackground">@drawable/background_dialog_glowing</item>
+    </style>
+    
     <style name="DialogCornerRadius" parent="">
         <item name="cornerSize">20dp</item>
+    </style>
+    
+    <style name="DialogCornerRadiusLarge" parent="">
+        <item name="cornerSize">24dp</item>
     </style>
     
     <style name="DialogTitleStyle" parent="MaterialAlertDialog.Material3.Title.Text">

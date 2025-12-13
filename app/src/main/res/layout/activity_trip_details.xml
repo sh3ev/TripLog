@@ -108,44 +108,45 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@drawable/background_section"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
+                        android:orientation="vertical"
                         android:paddingStart="20dp"
                         android:paddingTop="16dp"
                         android:paddingEnd="20dp"
                         android:paddingBottom="16dp">
 
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_marginEnd="12dp"
-                            android:src="@drawable/ic_location_pin"
-                            app:tint="@color/accent_purple" />
-
+                        <!-- Nagłówek z ikoną -->
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_marginEnd="12dp"
+                                android:src="@drawable/ic_location_pin"
+                                app:tint="@color/accent_purple" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Cel podróży"
-                                android:textColor="@color/text_hint"
-                                android:textSize="12sp" />
-
-                            <TextView
-                                android:id="@+id/textViewLocation"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Kraków, Polska"
                                 android:textColor="@color/text_primary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
                         </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/textViewLocation"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginStart="36dp"
+                            android:text="Kraków, Polska"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="14sp" />
 
                     </LinearLayout>
 
@@ -209,27 +210,45 @@
                         android:id="@+id/layoutDescription"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
                         android:orientation="vertical"
                         android:paddingStart="20dp"
-                        android:paddingTop="20dp"
                         android:paddingEnd="20dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <!-- Nagłówek z ikoną -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Opis"
-                            android:textColor="@color/text_hint"
-                            android:textSize="12sp" />
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_marginEnd="12dp"
+                                android:src="@drawable/ic_description"
+                                app:tint="@color/accent_purple" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Opis"
+                                android:textColor="@color/text_primary"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
 
                         <TextView
                             android:id="@+id/textViewDescription"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginStart="36dp"
                             android:lineSpacingExtra="4dp"
                             android:text="Opis podróży"
-                            android:textColor="@color/text_primary"
-                            android:textSize="15sp" />
+                            android:textColor="@color/text_secondary"
+                            android:textSize="14sp" />
 
                     </LinearLayout>
 

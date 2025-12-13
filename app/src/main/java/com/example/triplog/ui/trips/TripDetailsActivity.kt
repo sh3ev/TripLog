@@ -467,10 +467,13 @@ class TripDetailsActivity : AppCompatActivity() {
                 <body>
                     <div id="map"></div>
                     <script>
+                        // Przesunięcie mapy w górę - marker będzie w górnej 1/3 ekranu
+                        var offsetLat = $latitude - 0.015;
+                        
                         var map = L.map('map', {
                             zoomControl: false,
                             attributionControl: false
-                        }).setView([$latitude, $longitude], 10);
+                        }).setView([offsetLat, $longitude], 13);
                         
                         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                             maxZoom: 19

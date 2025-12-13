@@ -12,17 +12,51 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.triplog.R
 
 class SelectedImageAdapter(
-    private val onRemoveClick: (String) -> Unit
-) : ListAdapter<String, SelectedImageAdapter.SelectedImageViewHolder>(ImagePathDiffCallback()) {
+    private val onRemoveClick: (String) -> Unit,
+    private val onAddClick: () -> Unit
+) : ListAdapter<String, RecyclerView.ViewHolder>(ImagePathDiffCallback()) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SelectedImageViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_selected_image, parent, false)
-        return SelectedImageViewHolder(view)
+    companion object {
+        private const val VIEW_TYPE_ADD = 0
+        private const val VIEW_TYPE_IMAGE = 1
     }
 
-    override fun onBindViewHolder(holder: SelectedImageViewHolder, position: Int) {
-        holder.bind(getItem(position))
+    override fun getItemViewType(position: Int): Int {
+        return if (position == 0) VIEW_TYPE_ADD else VIEW_TYPE_IMAGE
+    }
+
+    override fun getItemCount(): Int {
+        return super.getItemCount() + 1 // +1 dla placeholdera "Dodaj"
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when (viewType) {
+            VIEW_TYPE_ADD -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_add_image_placeholder, parent, false)
+                AddImageViewHolder(view)
+            }
+            else -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_selected_image, parent, false)
+                SelectedImageViewHolder(view)
+            }
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (holder) {
+            is AddImageViewHolder -> holder.bind()
+            is SelectedImageViewHolder -> holder.bind(getItem(position - 1)) // -1 bo pierwszy to placeholder
+        }
+    }
+
+    inner class AddImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun bind() {
+            itemView.setOnClickListener {
+                onAddClick()
+            }
+        }
     }
 
     inner class SelectedImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

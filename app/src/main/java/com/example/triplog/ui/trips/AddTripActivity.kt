@@ -1,12 +1,17 @@
 package com.example.triplog.ui.trips
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.triplog.data.AppDatabase
@@ -39,10 +44,22 @@ class AddTripActivity : AppCompatActivity() {
     private var endDate: LocalDate? = null
 
     private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.GetMultipleContents()
+        ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris: List<Uri> ->
-        uris.forEach { uri ->
-            saveImageFromUri(uri)
+        if (uris.isNotEmpty()) {
+            saveImagesFromUris(uris)
+        }
+    }
+    
+    // Launcher dla uprawnień do zdjęć
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.entries.all { it.value }
+        if (allGranted) {
+            openImagePicker()
+        } else {
+            Toast.makeText(this, "Brak dostępu do zdjęć", Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -112,10 +129,6 @@ class AddTripActivity : AppCompatActivity() {
             loadTripData()
         }
 
-        binding.buttonSelectImage.setOnClickListener {
-            imagePickerLauncher.launch("image/*")
-        }
-
         binding.buttonSave.setOnClickListener {
             saveTrip()
         }
@@ -127,8 +140,10 @@ class AddTripActivity : AppCompatActivity() {
             locationSearchLauncher.launch(intent)
         }
         
-        binding.imageViewClearLocation.setOnClickListener {
-            clearLocationAndDates()
+        // Kliknięcie na wybraną lokalizację otwiera edycję
+        binding.layoutSelectedLocation.setOnClickListener {
+            val intent = Intent(this, LocationSearchActivity::class.java)
+            locationSearchLauncher.launch(intent)
         }
     }
     
@@ -139,10 +154,10 @@ class AddTripActivity : AppCompatActivity() {
             
             binding.textViewSelectedLocation.text = "$currentLocationName\n$dateRange"
             binding.layoutSelectedLocation.visibility = View.VISIBLE
-            binding.textViewLocationHint.text = "Zmień cel podróży"
+            binding.layoutSelectLocation.visibility = View.GONE
         } else {
             binding.layoutSelectedLocation.visibility = View.GONE
-            binding.textViewLocationHint.text = "Dokąd chcesz jechać?"
+            binding.layoutSelectLocation.visibility = View.VISIBLE
         }
     }
     
@@ -156,13 +171,54 @@ class AddTripActivity : AppCompatActivity() {
     }
 
     private fun setupImageRecyclerView() {
-        selectedImageAdapter = SelectedImageAdapter { imagePath ->
-            removeImage(imagePath)
-        }
+        selectedImageAdapter = SelectedImageAdapter(
+            onRemoveClick = { imagePath -> removeImage(imagePath) },
+            onAddClick = { checkPermissionAndOpenPicker() }
+        )
         binding.recyclerViewSelectedImages.apply {
             adapter = selectedImageAdapter
             layoutManager = LinearLayoutManager(this@AddTripActivity, LinearLayoutManager.HORIZONTAL, false)
         }
+    }
+    
+    private fun checkPermissionAndOpenPicker() {
+        // Photo Picker (Android 11+) nie wymaga uprawnień
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ - sprawdź READ_MEDIA_IMAGES
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.READ_MEDIA_IMAGES
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    openImagePicker()
+                }
+                else -> {
+                    permissionLauncher.launch(arrayOf(Manifest.permission.READ_MEDIA_IMAGES))
+                }
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11-12 - Photo Picker działa bez uprawnień
+            openImagePicker()
+        } else {
+            // Android 10 i niżej - sprawdź READ_EXTERNAL_STORAGE
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    openImagePicker()
+                }
+                else -> {
+                    permissionLauncher.launch(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
+                }
+            }
+        }
+    }
+    
+    private fun openImagePicker() {
+        imagePickerLauncher.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        )
     }
 
     private fun removeImage(imagePath: String) {
@@ -170,24 +226,34 @@ class AddTripActivity : AppCompatActivity() {
         selectedImageAdapter.submitList(selectedImagePaths.toList())
     }
 
-    private fun saveImageFromUri(uri: Uri) {
-        try {
-            val inputStream = contentResolver.openInputStream(uri)
-            val imageDir = File(getExternalFilesDir(null), "trip_images")
-            if (!imageDir.exists()) {
-                imageDir.mkdirs()
+    private fun saveImagesFromUris(uris: List<Uri>) {
+        var savedCount = 0
+        val imageDir = File(getExternalFilesDir(null), "trip_images")
+        if (!imageDir.exists()) {
+            imageDir.mkdirs()
+        }
+        
+        uris.forEach { uri ->
+            try {
+                val inputStream = contentResolver.openInputStream(uri)
+                val imageFile = File(imageDir, "trip_${System.currentTimeMillis()}_${savedCount}.jpg")
+                val outputStream = FileOutputStream(imageFile)
+                inputStream?.copyTo(outputStream)
+                inputStream?.close()
+                outputStream.close()
+                
+                selectedImagePaths.add(imageFile.absolutePath)
+                savedCount++
+            } catch (e: Exception) {
+                // Kontynuuj z pozostałymi zdjęciami
             }
-            val imageFile = File(imageDir, "trip_${System.currentTimeMillis()}.jpg")
-            val outputStream = FileOutputStream(imageFile)
-            inputStream?.copyTo(outputStream)
-            inputStream?.close()
-            outputStream.close()
-            
-            selectedImagePaths.add(imageFile.absolutePath)
-            selectedImageAdapter.submitList(selectedImagePaths.toList())
-            Toast.makeText(this, "Zdjęcie dodane", Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) {
-            Toast.makeText(this, "Błąd zapisu zdjęcia: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+        
+        selectedImageAdapter.submitList(selectedImagePaths.toList())
+        
+        if (savedCount > 0) {
+            val message = if (savedCount == 1) "Dodano zdjęcie" else "Dodano $savedCount zdjęć"
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -199,6 +265,9 @@ class AddTripActivity : AppCompatActivity() {
                         database.tripDao().getTripById(id)
                     }
                     trip?.let {
+                        // Zmień nagłówek na nazwę podróży
+                        binding.textViewHeader.text = it.title
+                        
                         binding.editTextTitle.setText(it.title)
                         binding.editTextDescription.setText(it.description)
                         
