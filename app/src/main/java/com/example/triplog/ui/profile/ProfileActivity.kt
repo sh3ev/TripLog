@@ -6,15 +6,20 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.lifecycleScope
+import com.example.triplog.R
 import com.example.triplog.data.AppDatabase
 import com.example.triplog.databinding.ActivityProfileBinding
 import com.example.triplog.ui.login.LoginActivity
 import com.example.triplog.utils.SharedPreferencesHelper
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -43,6 +48,11 @@ class ProfileActivity : AppCompatActivity() {
             return
         }
 
+        setupClickListeners()
+        loadUserData()
+    }
+
+    private fun setupClickListeners() {
         // Przycisk wstecz
         binding.buttonBack.setOnClickListener { finish() }
 
@@ -56,17 +66,145 @@ class ProfileActivity : AppCompatActivity() {
             imagePickerLauncher.launch("image/*")
         }
 
-        // Zapisz zmiany
-        binding.buttonSave.setOnClickListener {
-            saveProfile()
+        // Edycja imienia
+        binding.itemFirstName.setOnClickListener {
+            showEditDialog(
+                title = getString(R.string.profile_first_name),
+                currentValue = binding.textViewFirstName.text.toString().let { 
+                    if (it == getString(R.string.profile_not_set)) "" else it 
+                },
+                onSave = { newValue -> updateFirstName(newValue) }
+            )
+        }
+
+        // Edycja nazwiska
+        binding.itemLastName.setOnClickListener {
+            showEditDialog(
+                title = getString(R.string.profile_last_name),
+                currentValue = binding.textViewLastName.text.toString().let { 
+                    if (it == getString(R.string.profile_not_set)) "" else it 
+                },
+                onSave = { newValue -> updateLastName(newValue) }
+            )
+        }
+
+        // Zmiana hasła
+        binding.itemChangePassword.setOnClickListener {
+            showChangePasswordDialog()
         }
 
         // Wyloguj
         binding.buttonLogout.setOnClickListener {
             logout()
         }
+    }
 
-        loadUserData()
+    private fun showEditDialog(title: String, currentValue: String, onSave: (String) -> Unit) {
+        val inputLayout = TextInputLayout(this).apply {
+            boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+            hint = title
+            setPadding(48, 32, 48, 16)
+        }
+        
+        val input = TextInputEditText(this).apply {
+            setText(currentValue)
+        }
+        inputLayout.addView(input)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.edit_field_title, title.lowercase()))
+            .setView(inputLayout)
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
+                val newValue = input.text.toString().trim()
+                onSave(newValue)
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun showChangePasswordDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_change_password, null)
+        val currentPasswordInput = dialogView.findViewById<TextInputEditText>(R.id.editTextCurrentPassword)
+        val newPasswordInput = dialogView.findViewById<TextInputEditText>(R.id.editTextNewPassword)
+        val confirmPasswordInput = dialogView.findViewById<TextInputEditText>(R.id.editTextConfirmPassword)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.profile_change_password))
+            .setView(dialogView)
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
+                val currentPassword = currentPasswordInput.text.toString()
+                val newPassword = newPasswordInput.text.toString()
+                val confirmPassword = confirmPasswordInput.text.toString()
+                
+                changePassword(currentPassword, newPassword, confirmPassword)
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun updateFirstName(firstName: String) {
+        lifecycleScope.launch {
+            currentUserEmail?.let { email ->
+                withContext(Dispatchers.IO) {
+                    val user = database.userDao().getUserByEmail(email)
+                    user?.let {
+                        database.userDao().updateProfile(email, firstName.ifEmpty { null }, it.lastName)
+                    }
+                }
+                binding.textViewFirstName.text = firstName.ifEmpty { getString(R.string.profile_not_set) }
+                Toast.makeText(this@ProfileActivity, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show()
+                setResult(RESULT_OK)
+            }
+        }
+    }
+
+    private fun updateLastName(lastName: String) {
+        lifecycleScope.launch {
+            currentUserEmail?.let { email ->
+                withContext(Dispatchers.IO) {
+                    val user = database.userDao().getUserByEmail(email)
+                    user?.let {
+                        database.userDao().updateProfile(email, it.firstName, lastName.ifEmpty { null })
+                    }
+                }
+                binding.textViewLastName.text = lastName.ifEmpty { getString(R.string.profile_not_set) }
+                Toast.makeText(this@ProfileActivity, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show()
+                setResult(RESULT_OK)
+            }
+        }
+    }
+
+    private fun changePassword(currentPassword: String, newPassword: String, confirmPassword: String) {
+        lifecycleScope.launch {
+            currentUserEmail?.let { email ->
+                // Walidacja
+                if (newPassword.length < 6) {
+                    Toast.makeText(this@ProfileActivity, getString(R.string.password_error_too_short), Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
+                if (newPassword != confirmPassword) {
+                    Toast.makeText(this@ProfileActivity, getString(R.string.password_error_mismatch), Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                val success = withContext(Dispatchers.IO) {
+                    val user = database.userDao().getUserByEmail(email)
+                    if (user?.passwordHash == currentPassword) {
+                        database.userDao().updatePassword(email, newPassword)
+                        true
+                    } else {
+                        false
+                    }
+                }
+
+                if (success) {
+                    Toast.makeText(this@ProfileActivity, getString(R.string.password_changed), Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@ProfileActivity, getString(R.string.password_error_current), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun loadUserData() {
@@ -77,8 +215,8 @@ class ProfileActivity : AppCompatActivity() {
                 }
                 user?.let {
                     binding.textViewEmail.text = it.email
-                    binding.editTextFirstName.setText(it.firstName ?: "")
-                    binding.editTextLastName.setText(it.lastName ?: "")
+                    binding.textViewFirstName.text = it.firstName ?: getString(R.string.profile_not_set)
+                    binding.textViewLastName.text = it.lastName ?: getString(R.string.profile_not_set)
                     
                     // Załaduj zdjęcie profilowe
                     it.profileImagePath?.let { path ->
@@ -118,22 +256,6 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveProfile() {
-        val firstName = binding.editTextFirstName.text.toString().trim().ifEmpty { null }
-        val lastName = binding.editTextLastName.text.toString().trim().ifEmpty { null }
-
-        lifecycleScope.launch {
-            currentUserEmail?.let { email ->
-                withContext(Dispatchers.IO) {
-                    database.userDao().updateProfile(email, firstName, lastName)
-                }
-                Toast.makeText(this@ProfileActivity, "Profil zaktualizowany", Toast.LENGTH_SHORT).show()
-                setResult(RESULT_OK)
-                finish()
-            }
-        }
-    }
-
     private fun saveProfileImage(uri: Uri) {
         lifecycleScope.launch {
             try {
@@ -163,7 +285,8 @@ class ProfileActivity : AppCompatActivity() {
                 val rotatedBitmap = rotateBitmapIfRequired(bitmap, imagePath)
                 binding.imageViewProfile.setImageBitmap(rotatedBitmap)
                 
-                Toast.makeText(this@ProfileActivity, "Zdjęcie zaktualizowane", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ProfileActivity, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show()
+                setResult(RESULT_OK)
             } catch (e: Exception) {
                 Toast.makeText(this@ProfileActivity, "Błąd zapisu zdjęcia", Toast.LENGTH_SHORT).show()
             }

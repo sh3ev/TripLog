@@ -62,4 +62,29 @@
     <string name="nav_you">Ty</string>
     <string name="nav_settings">Ustawienia</string>
 
+    <!-- Profile Activity -->
+    <string name="profile_title">Mój profil</string>
+    <string name="back">Wstecz</string>
+    <string name="change_photo">Zmień zdjęcie</string>
+    <string name="profile_section_info">Informacje</string>
+    <string name="profile_section_security">Bezpieczeństwo</string>
+    <string name="profile_email">E-mail</string>
+    <string name="profile_first_name">Imię</string>
+    <string name="profile_last_name">Nazwisko</string>
+    <string name="profile_not_set">Nie ustawiono</string>
+    <string name="profile_change_password">Zmień hasło</string>
+    <string name="profile_change_password_hint">Zaktualizuj swoje hasło</string>
+    <string name="logout">Wyloguj się</string>
+    <string name="edit_field_title">Edytuj %1$s</string>
+    <string name="save">Zapisz</string>
+    <string name="cancel">Anuluj</string>
+    <string name="profile_updated">Profil zaktualizowany</string>
+    <string name="password_changed">Hasło zostało zmienione</string>
+    <string name="current_password">Aktualne hasło</string>
+    <string name="new_password">Nowe hasło</string>
+    <string name="confirm_new_password">Potwierdź nowe hasło</string>
+    <string name="password_error_current">Nieprawidłowe aktualne hasło</string>
+    <string name="password_error_mismatch">Nowe hasła nie są takie same</string>
+    <string name="password_error_too_short">Hasło musi mieć minimum 6 znaków</string>
+
 </resources>
