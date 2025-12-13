@@ -12,12 +12,13 @@
     <color name="surface_variant_dark">#B32A1E38</color>
     <color name="surface_elevated">#992A2035</color>
     
-    <!-- Accent colors - Pink/Purple and Green -->
+    <!-- Accent colors - Pink/Purple -->
     <color name="accent_pink">#FFEC4899</color>
     <color name="accent_pink_light">#FFF472B6</color>
     <color name="accent_purple">#FF8B5CF6</color>
     <color name="accent_purple_dark">#FF6D28D9</color>
     
+    <!-- Legacy green (for icons/indicators only) -->
     <color name="accent_green">#FF4CAF50</color>
     <color name="accent_green_dark">#FF2E7D32</color>
     <color name="accent_green_light">#FF81C784</color>
@@ -26,10 +27,17 @@
     <color name="accent_blue_dark">#FF1565C0</color>
     <color name="accent_blue_light">#FF64B5F6</color>
     
-    <!-- Text colors -->
-    <color name="text_primary">#FFFFFFFF</color>
-    <color name="text_secondary">#FFB0B0B0</color>
-    <color name="text_hint">#FF707080</color>
+    <!-- Text colors - Android Material Design standards -->
+    <!-- Primary text: 87% white - for headings, important content -->
+    <color name="text_primary">#DEFFFFFF</color>
+    <!-- Secondary text: 60% white - for body text, descriptions -->
+    <color name="text_secondary">#99FFFFFF</color>
+    <!-- Hint/Placeholder text: 38% white - for placeholders, disabled -->
+    <color name="text_hint">#61FFFFFF</color>
+    <!-- Disabled text: 30% white -->
+    <color name="text_disabled">#4DFFFFFF</color>
+    <!-- Label text: 70% white - for form labels, captions -->
+    <color name="text_label">#B3FFFFFF</color>
 
     <!-- Card backgrounds with transparency -->
     <color name="card_background">#801E1428</color>

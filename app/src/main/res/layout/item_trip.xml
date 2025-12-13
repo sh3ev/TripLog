@@ -1,115 +1,241 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp"
-    app:cardCornerRadius="16dp"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="20dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="@color/surface_dark">
+    app:cardBackgroundColor="@color/card_background">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="14dp">
+        android:orientation="vertical">
 
-        <!-- Rounded thumbnail with CardView -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cardThumbnail"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+        <!-- Image with overlay -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="180dp">
 
             <ImageView
                 android:id="@+id/imageViewThumbnail"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:contentDescription="Miniatura podróży"
+                android:contentDescription="Zdjęcie podróży"
                 android:scaleType="centerCrop"
                 android:background="@color/surface_variant_dark" />
 
-        </androidx.cardview.widget.CardView>
-
-        <LinearLayout
-            android:id="@+id/layoutInfo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
-            android:layout_marginEnd="8dp"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/imageButtonEdit"
-            app:layout_constraintStart_toEndOf="@+id/cardThumbnail"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <TextView
-                android:id="@+id/textViewTitle"
+            <!-- Gradient overlay for text readability -->
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Tytuł podróży"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:layout_height="match_parent"
+                android:background="@drawable/gradient_image_overlay" />
 
+            <!-- Days countdown badge -->
             <TextView
-                android:id="@+id/textViewDate"
-                android:layout_width="match_parent"
+                android:id="@+id/textViewCountdown"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="10 gru - 12 gru 2025"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/textViewLocation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:drawablePadding="4dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text=""
-                android:textColor="@color/text_hint"
+                android:layout_gravity="top|start"
+                android:layout_margin="12dp"
+                android:background="@drawable/background_badge_countdown"
+                android:drawableStart="@drawable/ic_clock_small"
+                android:drawablePadding="6dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="19 dni do wyjazdu"
+                android:textColor="@android:color/white"
                 android:textSize="12sp"
+                android:textStyle="bold"
                 android:visibility="gone" />
+
+            <!-- Title and date at bottom of image -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/textViewTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:shadowColor="#80000000"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:shadowRadius="3"
+                    android:text="Tytuł podróży"
+                    android:textColor="@android:color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_calendar_small"
+                        app:tint="#CCFFFFFF" />
+
+                    <TextView
+                        android:id="@+id/textViewDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="01 Jan 2026 - 03 Jan 2026"
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="13sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+        <!-- Action buttons row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@color/surface_elevated"
+            android:orientation="horizontal"
+            android:weightSum="5">
+
+            <!-- Calendar button -->
+            <LinearLayout
+                android:id="@+id/buttonCalendar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_calendar_small"
+                    app:tint="@color/accent_purple" />
+
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:background="@color/divider_dark" />
+
+            <!-- Budget button -->
+            <LinearLayout
+                android:id="@+id/buttonBudget"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_budget"
+                    app:tint="@color/accent_pink" />
+
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:background="@color/divider_dark" />
+
+            <!-- Edit button -->
+            <LinearLayout
+                android:id="@+id/buttonEdit"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_edit"
+                    app:tint="@color/accent_green" />
+
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:background="@color/divider_dark" />
+
+            <!-- Photos button -->
+            <LinearLayout
+                android:id="@+id/buttonPhotos"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_camera"
+                    app:tint="@color/accent_purple" />
+
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:background="@color/divider_dark" />
+
+            <!-- More options button -->
+            <LinearLayout
+                android:id="@+id/buttonMore"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_more_horiz"
+                    app:tint="@color/text_secondary" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-        <ImageButton
-            android:id="@+id/imageButtonEdit"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="4dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Edytuj"
-            android:padding="8dp"
-            android:src="@android:drawable/ic_menu_edit"
-            app:tint="@color/text_secondary"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/imageButtonDelete"
-            app:layout_constraintTop_toTopOf="parent" />
+    </LinearLayout>
 
-        <ImageButton
-            android:id="@+id/imageButtonDelete"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Usuń"
-            android:padding="8dp"
-            android:src="@android:drawable/ic_menu_delete"
-            app:tint="@color/text_hint"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>
 

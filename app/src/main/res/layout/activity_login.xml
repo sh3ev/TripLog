@@ -148,7 +148,7 @@
             android:layout_height="48dp"
             android:layout_marginTop="24dp"
             android:visibility="gone"
-            android:indeterminateTint="@color/accent_blue" />
+            android:indeterminateTint="@color/accent_pink" />
 
         <!-- Divider -->
         <LinearLayout
@@ -188,7 +188,7 @@
             android:layout_marginTop="32dp"
             android:padding="8dp"
             android:text="@string/register_link_text"
-            android:textColor="@color/accent_blue"
+            android:textColor="@color/accent_pink"
             android:textSize="14sp" />
 
     </LinearLayout>

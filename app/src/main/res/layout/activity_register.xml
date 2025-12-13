@@ -265,7 +265,7 @@
             android:layout_marginTop="24dp"
             android:padding="8dp"
             android:text="Masz już konto? Zaloguj się"
-            android:textColor="@color/accent_blue"
+            android:textColor="@color/accent_pink"
             android:textSize="14sp" />
 
     </LinearLayout>

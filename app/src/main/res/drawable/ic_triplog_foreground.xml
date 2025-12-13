@@ -21,7 +21,7 @@
     
     <!-- Mała ikona aparatu/zdjęcia -->
     <path
-        android:fillColor="#4CAF50"
+        android:fillColor="#EC4899"
         android:pathData="M72,62h-3l-1.5,-1.5h-6l-1.5,1.5h-3c-1.65,0 -3,1.35 -3,3v9c0,1.65 1.35,3 3,3h15c1.65,0 3,-1.35 3,-3v-9c0,-1.65 -1.35,-3 -3,-3zM64.5,74.5c-2.5,0 -4.5,-2 -4.5,-4.5s2,-4.5 4.5,-4.5 4.5,2 4.5,4.5 -2,4.5 -4.5,4.5z"/>
 
 </vector>

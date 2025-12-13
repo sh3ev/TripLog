@@ -153,7 +153,7 @@
                     android:layout_height="24dp"
                     android:layout_marginEnd="12dp"
                     android:src="@drawable/ic_location_pin"
-                    app:tint="@color/accent_green" />
+                    app:tint="@color/accent_purple" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -238,7 +238,7 @@
                         android:layout_height="24dp"
                         android:layout_marginEnd="12dp"
                         android:src="@android:drawable/ic_menu_view"
-                        app:tint="@color/accent_blue" />
+                        app:tint="@color/accent_purple" />
 
                     <TextView
                         android:layout_width="0dp"

@@ -162,7 +162,8 @@
             android:text="Sprawdź pogodę"
             android:textAllCaps="false"
             android:enabled="false"
-            app:backgroundTint="@color/accent_green"
+            android:background="@drawable/background_button_primary"
+            app:backgroundTint="@null"
             app:cornerRadius="24dp" />
 
     </LinearLayout>

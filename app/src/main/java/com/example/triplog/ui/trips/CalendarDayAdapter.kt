@@ -68,21 +68,23 @@ class CalendarDayAdapter(
                     binding.textViewDay.setTextColor(0xFFFFFFFF.toInt())
                     
                     // Pokaż tło zakresu po odpowiedniej stronie
-                    if (startDate != null && endDate != null) {
+                    if (startDate != null && endDate != null && startDate != endDate) {
                         binding.viewRangeBackground.visibility = View.VISIBLE
                         val lp = binding.viewRangeBackground.layoutParams as ViewGroup.MarginLayoutParams
-                        if (isStart) {
-                            lp.marginStart = binding.root.width / 2
-                            lp.marginEnd = 0
-                        } else if (isEnd) {
-                            lp.marginStart = 0
-                            lp.marginEnd = binding.root.width / 2
-                        }
+                        lp.marginStart = 0
+                        lp.marginEnd = 0
                         binding.viewRangeBackground.layoutParams = lp
+                        
+                        if (isStart) {
+                            binding.viewRangeBackground.setBackgroundResource(R.drawable.background_day_range_start)
+                        } else if (isEnd) {
+                            binding.viewRangeBackground.setBackgroundResource(R.drawable.background_day_range_end)
+                        }
                     }
                 }
                 isInRange -> {
                     binding.viewRangeBackground.visibility = View.VISIBLE
+                    binding.viewRangeBackground.setBackgroundResource(R.drawable.background_day_range_middle)
                     val lp = binding.viewRangeBackground.layoutParams as ViewGroup.MarginLayoutParams
                     lp.marginStart = 0
                     lp.marginEnd = 0

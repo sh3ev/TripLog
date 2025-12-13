@@ -91,7 +91,7 @@ class LoginActivity : AppCompatActivity() {
             override fun updateDrawState(ds: TextPaint) {
                 super.updateDrawState(ds)
                 ds.isUnderlineText = false
-                ds.color = resources.getColor(R.color.accent_blue, null)
+                ds.color = resources.getColor(R.color.accent_pink, null)
             }
         }
 

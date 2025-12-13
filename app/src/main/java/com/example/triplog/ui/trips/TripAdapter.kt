@@ -7,8 +7,8 @@ import android.util.LruCache
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 class TripAdapter(
@@ -62,9 +63,9 @@ class TripAdapter(
         private val imageView: ImageView = itemView.findViewById(R.id.imageViewThumbnail)
         private val textViewTitle: TextView = itemView.findViewById(R.id.textViewTitle)
         private val textViewDate: TextView = itemView.findViewById(R.id.textViewDate)
-        private val textViewLocation: TextView = itemView.findViewById(R.id.textViewLocation)
-        private val imageButtonEdit: ImageButton = itemView.findViewById(R.id.imageButtonEdit)
-        private val imageButtonDelete: ImageButton = itemView.findViewById(R.id.imageButtonDelete)
+        private val textViewCountdown: TextView = itemView.findViewById(R.id.textViewCountdown)
+        private val buttonEdit: LinearLayout = itemView.findViewById(R.id.buttonEdit)
+        private val buttonMore: LinearLayout = itemView.findViewById(R.id.buttonMore)
         
         private var imageLoadingJob: Job? = null
 
@@ -79,13 +80,8 @@ class TripAdapter(
             // Formatuj zakres dat
             textViewDate.text = formatDateRange(trip.date, trip.endDate)
             
-            // Pokaż lokalizację jeśli dostępna
-            if (!trip.locationName.isNullOrEmpty()) {
-                textViewLocation.text = trip.locationName
-                textViewLocation.visibility = View.VISIBLE
-            } else {
-                textViewLocation.visibility = View.GONE
-            }
+            // Pokaż countdown dla przyszłych podróży
+            updateCountdown(trip)
 
             // Cancel any previous image loading
             cancelImageLoading()
@@ -138,12 +134,40 @@ class TripAdapter(
                 true
             }
 
-            imageButtonEdit.setOnClickListener {
+            buttonEdit.setOnClickListener {
                 onEditClick(trip)
             }
 
-            imageButtonDelete.setOnClickListener {
+            buttonMore.setOnClickListener {
                 onDeleteClick(trip)
+            }
+        }
+        
+        private fun updateCountdown(trip: TripEntity) {
+            try {
+                val startDate = LocalDate.parse(trip.date)
+                val today = LocalDate.now()
+                val daysUntil = ChronoUnit.DAYS.between(today, startDate)
+                
+                when {
+                    daysUntil > 0 -> {
+                        textViewCountdown.visibility = View.VISIBLE
+                        textViewCountdown.text = when {
+                            daysUntil == 1L -> "Jutro wyjazd!"
+                            daysUntil < 7 -> "$daysUntil dni do wyjazdu"
+                            else -> "$daysUntil dni do wyjazdu"
+                        }
+                    }
+                    daysUntil == 0L -> {
+                        textViewCountdown.visibility = View.VISIBLE
+                        textViewCountdown.text = "Dziś wyjazd!"
+                    }
+                    else -> {
+                        textViewCountdown.visibility = View.GONE
+                    }
+                }
+            } catch (e: Exception) {
+                textViewCountdown.visibility = View.GONE
             }
         }
         
