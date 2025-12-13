@@ -1,5 +1,6 @@
 package com.example.triplog.ui.main
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -8,6 +9,8 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -25,12 +28,16 @@ import com.example.triplog.ui.trips.AddTripActivity
 import com.example.triplog.ui.trips.TripAdapter
 import com.example.triplog.ui.trips.TripDetailsActivity
 import com.example.triplog.utils.SharedPreferencesHelper
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -39,6 +46,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tripAdapter: TripAdapter
     private var searchJob: Job? = null
     private var backPressedTime: Long = 0
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
+    
+    private var allTrips: List<TripEntity> = emptyList()
+    private var currentTabPosition: Int = 0
 
     private val profileLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -50,16 +61,15 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Fullscreen - mapa pod status barem
+        window.setFlags(
+            android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        )
+        
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        binding.imageView3.setOnClickListener {
-            navigateToProfile()
-        }
-
-        binding.buttonAddTrip.setOnClickListener {
-            navigateToAddTrip()
-        }
 
         currentUserEmail = SharedPreferencesHelper.getLoggedInUser(this)
         if (currentUserEmail == null) {
@@ -67,10 +77,199 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        setupMap()
+        setupBottomSheet()
+        setupTabs()
         setupRecyclerView()
         setupSearchBar()
+        setupNavigation()
         loadUserProfile()
         loadTrips()
+    }
+    
+    private fun setupTabs() {
+        // Dodaj zakładki
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText(R.string.tab_upcoming))
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText(R.string.tab_current))
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText(R.string.tab_past))
+        
+        // Domyślnie wybierz "Nadchodzące"
+        binding.tabLayout.selectTab(binding.tabLayout.getTabAt(0))
+        
+        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                currentTabPosition = tab?.position ?: 0
+                filterTripsByCategory()
+            }
+            
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun setupMap() {
+        binding.webViewMap.apply {
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            webViewClient = WebViewClient()
+            
+            val mapHtml = """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                    <style>
+                        body { margin: 0; padding: 0; }
+                        #map { width: 100%; height: 100vh; }
+                        .leaflet-control-attribution { display: none; }
+                        .leaflet-control-zoom { display: none; }
+                    </style>
+                </head>
+                <body>
+                    <div id="map"></div>
+                    <script>
+                        var map = L.map('map', {
+                            zoomControl: false,
+                            attributionControl: false
+                        }).setView([30, 0], 2);
+                        
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                            maxZoom: 19
+                        }).addTo(map);
+                    </script>
+                </body>
+                </html>
+            """.trimIndent()
+            
+            loadDataWithBaseURL(null, mapHtml, "text/html", "UTF-8", null)
+        }
+    }
+
+    private fun setupBottomSheet() {
+        bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContainer)
+        
+        // Trzy stany: collapsed (schowany na dole), half-expanded (środek), expanded (góra)
+        val displayMetrics = resources.displayMetrics
+        val screenHeight = displayMetrics.heightPixels
+        val density = displayMetrics.density
+        
+        // peekHeight = tylko avatar i statystyki nad bottom nav (72dp nav + ~100dp content)
+        val bottomNavHeight = (72 * density).toInt()
+        val collapsedContentHeight = (110 * density).toInt()
+        bottomSheetBehavior.peekHeight = bottomNavHeight + collapsedContentHeight
+        bottomSheetBehavior.isHideable = false
+        bottomSheetBehavior.isFitToContents = false
+        bottomSheetBehavior.halfExpandedRatio = 0.55f // środkowa pozycja na 55% ekranu
+        
+        // Stan początkowy: środek (half-expanded)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+        
+        // Pobierz status bar height
+        val statusBarHeight = getStatusBarHeight()
+        
+        bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                when (newState) {
+                    BottomSheetBehavior.STATE_EXPANDED -> {
+                        // W pełni rozwinięty - pokaż wyszukiwarkę, ukryj avatar i statystyki
+                        binding.searchSection.visibility = View.VISIBLE
+                        binding.profileHeader.visibility = View.GONE
+                        binding.userNameSection.visibility = View.GONE
+                        binding.imageViewAvatar.visibility = View.GONE
+                        binding.tabLayout.visibility = View.GONE
+                        // Ustaw padding top dla status bara
+                        binding.bottomSheet.setPadding(0, statusBarHeight, 0, 0)
+                        (binding.bottomSheet.layoutParams as FrameLayout.LayoutParams).topMargin = 0
+                    }
+                    BottomSheetBehavior.STATE_HALF_EXPANDED -> {
+                        // Środek - pokaż avatar i statystyki, ukryj wyszukiwarkę
+                        binding.searchSection.visibility = View.GONE
+                        binding.profileHeader.visibility = View.VISIBLE
+                        binding.userNameSection.visibility = View.VISIBLE
+                        binding.imageViewAvatar.visibility = View.VISIBLE
+                        binding.tabLayout.visibility = View.VISIBLE
+                        // Przywróć margin dla avatara
+                        binding.bottomSheet.setPadding(0, 0, 0, 0)
+                        (binding.bottomSheet.layoutParams as FrameLayout.LayoutParams).topMargin = (32 * density).toInt()
+                    }
+                    BottomSheetBehavior.STATE_COLLAPSED -> {
+                        // Na dole - pokazuj tylko avatar i statystyki
+                        binding.searchSection.visibility = View.GONE
+                        binding.profileHeader.visibility = View.VISIBLE
+                        binding.userNameSection.visibility = View.GONE
+                        binding.imageViewAvatar.visibility = View.VISIBLE
+                        binding.tabLayout.visibility = View.GONE
+                        // Przywróć margin dla avatara
+                        binding.bottomSheet.setPadding(0, 0, 0, 0)
+                        (binding.bottomSheet.layoutParams as FrameLayout.LayoutParams).topMargin = (32 * density).toInt()
+                    }
+                }
+            }
+
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                // slideOffset: 0 = collapsed, 0.5 = half-expanded, 1 = expanded
+                if (slideOffset >= 0.5f) {
+                    // Przejście half-expanded -> expanded
+                    val expandProgress = (slideOffset - 0.5f) * 2 // 0 to 1
+                    binding.searchSection.alpha = expandProgress
+                    binding.profileHeader.alpha = 1 - expandProgress
+                    binding.userNameSection.alpha = 1 - expandProgress
+                    binding.imageViewAvatar.alpha = 1 - expandProgress
+                    binding.tabLayout.alpha = 1 - expandProgress
+                    
+                    if (expandProgress > 0.3f) {
+                        binding.searchSection.visibility = View.VISIBLE
+                    }
+                    
+                    // Płynna zmiana marginu i paddingu
+                    val margin = ((1 - expandProgress) * 32 * density).toInt()
+                    val padding = (expandProgress * statusBarHeight).toInt()
+                    binding.bottomSheet.setPadding(0, padding, 0, 0)
+                    (binding.bottomSheet.layoutParams as FrameLayout.LayoutParams).topMargin = margin
+                    binding.bottomSheet.requestLayout()
+                } else {
+                    // Przejście collapsed -> half-expanded
+                    val halfProgress = slideOffset * 2 // 0 to 1
+                    binding.searchSection.visibility = View.GONE
+                    binding.profileHeader.alpha = 1f
+                    binding.imageViewAvatar.alpha = 1f
+                    binding.userNameSection.alpha = halfProgress
+                    binding.tabLayout.alpha = halfProgress
+                }
+            }
+        })
+    }
+    
+    private fun getStatusBarHeight(): Int {
+        var result = 0
+        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        if (resourceId > 0) {
+            result = resources.getDimensionPixelSize(resourceId)
+        }
+        return result
+    }
+
+    private fun setupNavigation() {
+        // Kliknięcie w avatar - otwiera profil
+        binding.imageViewAvatar.setOnClickListener {
+            navigateToProfile()
+        }
+
+        // Bottom Navigation
+        binding.navProfile.setOnClickListener {
+            navigateToProfile()
+        }
+
+        binding.navAddTrip.setOnClickListener {
+            navigateToAddTrip()
+        }
+
+        binding.navSettings.setOnClickListener {
+            Toast.makeText(this, "Ustawienia - wkrótce", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun loadUserProfile() {
@@ -79,12 +278,16 @@ class MainActivity : AppCompatActivity() {
                 currentUserEmail?.let { database.userDao().getUserByEmail(it) }
             }
             user?.let {
-                // Ustaw powitanie
+                // Ustaw imię użytkownika
                 val displayName = when {
-                    !it.firstName.isNullOrBlank() -> it.firstName
-                    else -> it.name.split(" ").firstOrNull() ?: it.name
+                    !it.firstName.isNullOrBlank() -> {
+                        if (!it.lastName.isNullOrBlank()) "${it.firstName} ${it.lastName}"
+                        else it.firstName
+                    }
+                    else -> it.name
                 }
-                binding.textView7.text = displayName
+                binding.textViewUserName.text = displayName
+                binding.textViewUserEmail.text = it.email
 
                 // Załaduj zdjęcie profilowe lub placeholder
                 if (!it.profileImagePath.isNullOrBlank()) {
@@ -92,35 +295,32 @@ class MainActivity : AppCompatActivity() {
                     if (file.exists()) {
                         val bitmap = BitmapFactory.decodeFile(it.profileImagePath)
                         val rotatedBitmap = rotateBitmapIfRequired(bitmap, it.profileImagePath!!)
-                        binding.imageView3.setImageBitmap(rotatedBitmap)
+                        binding.imageViewAvatar.setImageBitmap(rotatedBitmap)
                     } else {
-                        binding.imageView3.setImageResource(R.drawable.ic_person_placeholder)
+                        binding.imageViewAvatar.setImageResource(R.drawable.ic_person_placeholder)
                     }
                 } else {
-                    binding.imageView3.setImageResource(R.drawable.ic_person_placeholder)
+                    binding.imageViewAvatar.setImageResource(R.drawable.ic_person_placeholder)
                 }
             }
         }
     }
 
     private fun setupSearchBar() {
-        // Show/hide clear button based on text
         binding.imageViewClearSearch.setOnClickListener {
-            binding.editTextText.text.clear()
+            binding.editTextSearch.text.clear()
         }
 
-        // Search functionality with debounce
-        binding.editTextText.addTextChangedListener(object : TextWatcher {
+        binding.editTextSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Show/hide clear button
                 binding.imageViewClearSearch.visibility = 
                     if (s?.isNotEmpty() == true) View.VISIBLE else View.GONE
                 
                 searchJob?.cancel()
                 searchJob = lifecycleScope.launch {
-                    delay(300) // Debounce delay
+                    delay(300)
                     searchTrips(s.toString())
                 }
             }
@@ -133,16 +333,15 @@ class MainActivity : AppCompatActivity() {
         currentUserEmail?.let { email ->
             lifecycleScope.launch {
                 if (query.isBlank()) {
-                    // If search is empty, load all trips
                     database.tripDao().getTripsByUser(email).collect { trips ->
-                        tripAdapter.submitList(trips)
-                        updateEmptyState(trips.isEmpty())
+                        allTrips = trips
+                        filterTripsByCategory()
+                        binding.textViewTripsCount.text = trips.size.toString()
                     }
                 } else {
-                    // Search trips by query
                     database.tripDao().searchTrips(email, query).collect { trips ->
-                        tripAdapter.submitList(trips)
-                        updateEmptyState(trips.isEmpty())
+                        allTrips = trips
+                        filterTripsByCategory()
                     }
                 }
             }
@@ -151,8 +350,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh with current search query
-        val currentQuery = binding.editTextText.text.toString()
+        loadUserProfile()
+        val currentQuery = binding.editTextSearch.text.toString()
         if (currentQuery.isBlank()) {
             loadTrips()
         } else {
@@ -164,18 +363,10 @@ class MainActivity : AppCompatActivity() {
         tripAdapter = TripAdapter(
             database = database,
             lifecycleScope = lifecycleScope,
-            onItemClick = { trip ->
-                navigateToTripDetails(trip)
-            },
-            onItemLongClick = { trip ->
-                // Long click functionality if needed
-            },
-            onEditClick = { trip ->
-                navigateToEditTrip(trip)
-            },
-            onDeleteClick = { trip ->
-                showDeleteConfirmationDialog(trip)
-            }
+            onItemClick = { trip -> navigateToTripDetails(trip) },
+            onItemLongClick = { },
+            onEditClick = { trip -> navigateToEditTrip(trip) },
+            onDeleteClick = { trip -> showDeleteConfirmationDialog(trip) }
         )
         binding.recyclerViewTrips.apply {
             adapter = tripAdapter
@@ -187,18 +378,82 @@ class MainActivity : AppCompatActivity() {
         currentUserEmail?.let { email ->
             lifecycleScope.launch {
                 database.tripDao().getTripsByUser(email).collect { trips ->
-                    tripAdapter.submitList(trips)
-                    updateEmptyState(trips.isEmpty())
+                    allTrips = trips
+                    filterTripsByCategory()
+                    binding.textViewTripsCount.text = trips.size.toString()
+                    
+                    // Policz unikalne kraje
+                    val countries = trips.mapNotNull { it.locationName }
+                        .map { it.substringAfterLast(",").trim() }
+                        .filter { it.isNotBlank() }
+                        .toSet()
+                    binding.textViewCountriesCount.text = countries.size.toString()
                 }
             }
         }
+    }
+    
+    private fun filterTripsByCategory() {
+        val today = LocalDate.now()
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        
+        val filteredTrips = allTrips.filter { trip ->
+            try {
+                val startDate = LocalDate.parse(trip.date, formatter)
+                val endDate = if (!trip.endDate.isNullOrBlank()) {
+                    LocalDate.parse(trip.endDate, formatter)
+                } else {
+                    startDate
+                }
+                
+                when (currentTabPosition) {
+                    0 -> startDate.isAfter(today) // Nadchodzące - zaczynają się w przyszłości
+                    1 -> !startDate.isAfter(today) && !endDate.isBefore(today) // Aktualne - trwające teraz
+                    2 -> endDate.isBefore(today) // Przeszłe - już zakończone
+                    else -> true
+                }
+            } catch (e: Exception) {
+                currentTabPosition == 2 // W razie błędu parsowania, traktuj jako przeszłe
+            }
+        }
+        
+        tripAdapter.submitList(filteredTrips)
+        updateEmptyState(filteredTrips.isEmpty())
     }
 
     private fun updateEmptyState(isEmpty: Boolean) {
         binding.emptyStateLayout.visibility = if (isEmpty) View.VISIBLE else View.GONE
         binding.recyclerViewTrips.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        
+        if (isEmpty) {
+            // Ustaw tekst i ikonę w zależności od wybranej zakładki
+            val (title, hint, iconRes) = when (currentTabPosition) {
+                0 -> Triple(
+                    getString(R.string.empty_upcoming),
+                    getString(R.string.empty_upcoming_hint),
+                    R.drawable.ic_empty_trips
+                )
+                1 -> Triple(
+                    getString(R.string.empty_current),
+                    getString(R.string.empty_current_hint),
+                    R.drawable.ic_empty_trips
+                )
+                2 -> Triple(
+                    getString(R.string.empty_past),
+                    getString(R.string.empty_past_hint),
+                    R.drawable.ic_empty_trips
+                )
+                else -> Triple(
+                    getString(R.string.all_trips_in_one_place),
+                    getString(R.string.press_plus_to_add_trip),
+                    R.drawable.ic_empty_trips
+                )
+            }
+            binding.textViewEmptyTitle.text = title
+            binding.textViewEmptyHint.text = hint
+            binding.imageViewEmptyIcon.setImageResource(iconRes)
+        }
     }
-
 
     private fun navigateToProfile() {
         val intent = Intent(this, ProfileActivity::class.java)
@@ -230,9 +485,7 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Usuń podróż")
             .setMessage("Czy na pewno chcesz usunąć podróż \"${trip.title}\"?")
-            .setPositiveButton("Usuń") { _, _ ->
-                deleteTrip(trip)
-            }
+            .setPositiveButton("Usuń") { _, _ -> deleteTrip(trip) }
             .setNegativeButton("Anuluj", null)
             .show()
     }
@@ -241,13 +494,10 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    // Pobierz i usuń fizyczne pliki zdjęć
                     val images = database.tripImageDao().getImagesByTripIdSync(trip.id)
                     images.forEach { image ->
-                        val file = java.io.File(image.imagePath)
-                        if (file.exists()) {
-                            file.delete()
-                        }
+                        val file = File(image.imagePath)
+                        if (file.exists()) file.delete()
                     }
                     database.tripDao().deleteTrip(trip)
                 }
@@ -260,6 +510,18 @@ class MainActivity : AppCompatActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
+        // Jeśli bottom sheet jest rozwinięty, wróć do half-expanded
+        when (bottomSheetBehavior.state) {
+            BottomSheetBehavior.STATE_EXPANDED -> {
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+                return
+            }
+            BottomSheetBehavior.STATE_COLLAPSED -> {
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+                return
+            }
+        }
+        
         if (backPressedTime + 2000 > System.currentTimeMillis()) {
             super.onBackPressed()
             return

@@ -44,5 +44,22 @@
     <string name="login_title">TripLog</string>
     <string name="login_subtitle">Twój dziennik podróży</string>
 
+    <!-- Main Activity - Bottom Sheet -->
+    <string name="trips_label">Podróże</string>
+    <string name="countries_label">Kraje</string>
+    <string name="tab_upcoming">Nadchodzące</string>
+    <string name="tab_current">Aktualne</string>
+    <string name="tab_past">Przeszłe</string>
+    <string name="search_trips_hint">Wyszukaj podróż</string>
+    <string name="all_trips_in_one_place">Wszystkie Twoje podróże w jednym miejscu</string>
+    <string name="press_plus_to_add_trip">Naciśnij + aby dodać pierwszą podróż</string>
+    <string name="empty_upcoming">Brak nadchodzących podróży</string>
+    <string name="empty_upcoming_hint">Zaplanuj swoją następną przygodę!</string>
+    <string name="empty_current">Brak aktualnych podróży</string>
+    <string name="empty_current_hint">Nie jesteś teraz w podróży</string>
+    <string name="empty_past">Brak przeszłych podróży</string>
+    <string name="empty_past_hint">Twoje wspomnienia pojawią się tutaj</string>
+    <string name="nav_you">Ty</string>
+    <string name="nav_settings">Ustawienia</string>
 
 </resources>
