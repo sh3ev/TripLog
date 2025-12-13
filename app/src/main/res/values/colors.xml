@@ -4,13 +4,20 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     
-    <!-- Modern dark theme colors -->
-    <color name="background_dark">#FF121212</color>
-    <color name="surface_dark">#FF1E1E1E</color>
-    <color name="surface_variant_dark">#FF2C2C2C</color>
-    <color name="surface_elevated">#FF2A2A2A</color>
+    <!-- Modern dark theme colors - Purple/Pink gradient style -->
+    <color name="background_dark">#FF0D0D12</color>
+    <color name="background_gradient_start">#FF1A1025</color>
+    <color name="background_gradient_end">#FF0D0D12</color>
+    <color name="surface_dark">#CC1E1428</color>
+    <color name="surface_variant_dark">#B32A1E38</color>
+    <color name="surface_elevated">#992A2035</color>
     
-    <!-- Accent colors - Green and Blue -->
+    <!-- Accent colors - Pink/Purple and Green -->
+    <color name="accent_pink">#FFEC4899</color>
+    <color name="accent_pink_light">#FFF472B6</color>
+    <color name="accent_purple">#FF8B5CF6</color>
+    <color name="accent_purple_dark">#FF6D28D9</color>
+    
     <color name="accent_green">#FF4CAF50</color>
     <color name="accent_green_dark">#FF2E7D32</color>
     <color name="accent_green_light">#FF81C784</color>
@@ -22,19 +29,27 @@
     <!-- Text colors -->
     <color name="text_primary">#FFFFFFFF</color>
     <color name="text_secondary">#FFB0B0B0</color>
-    <color name="text_hint">#FF808080</color>
+    <color name="text_hint">#FF707080</color>
 
+    <!-- Card backgrounds with transparency -->
+    <color name="card_background">#801E1428</color>
+    <color name="card_background_elevated">#992A1E38</color>
     
     <!-- Primary and secondary for Material Design -->
-    <color name="primary">@color/accent_blue</color>
-    <color name="primary_dark">@color/accent_blue_dark</color>
-    <color name="primary_light">@color/accent_blue_light</color>
+    <color name="primary">@color/accent_purple</color>
+    <color name="primary_dark">@color/accent_purple_dark</color>
+    <color name="primary_light">@color/accent_pink_light</color>
     
-    <color name="secondary">@color/accent_green</color>
-    <color name="secondary_dark">@color/accent_green_dark</color>
-    <color name="secondary_light">@color/accent_green_light</color>
+    <color name="secondary">@color/accent_pink</color>
+    <color name="secondary_dark">@color/accent_purple_dark</color>
+    <color name="secondary_light">@color/accent_pink_light</color>
 
     <!-- Divider -->
-    <color name="divider_dark">#FF3D3D3D</color>
+    <color name="divider_dark">#40FFFFFF</color>
+    
+    <!-- Danger -->
+    <color name="danger">#FFEF4444</color>
+    <color name="danger_dark">#FFDC2626</color>
+    <color name="danger_subtle">#33EF4444</color>
 
 </resources>

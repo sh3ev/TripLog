@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="false"
-    android:background="@color/background_dark"
+    android:background="@drawable/background_gradient"
     tools:context=".ui.main.MainActivity">
 
     <!-- Mapa w tle -->
@@ -273,7 +273,7 @@
         android:layout_width="match_parent"
         android:layout_height="72dp"
         android:layout_gravity="bottom"
-        android:background="@color/surface_dark"
+        android:background="@drawable/background_bottom_nav"
         android:elevation="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"

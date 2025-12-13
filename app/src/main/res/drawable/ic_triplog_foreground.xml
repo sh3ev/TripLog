@@ -4,19 +4,24 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     
-    <!-- Tło koło - większe -->
+    <!-- Jasne tło zewnętrzne -->
+    <path
+        android:fillColor="#90CAF9"
+        android:pathData="M54,54m-50,0a50,50 0,1 1,100 0a50,50 0,1 1,-100 0"/>
+    
+    <!-- Niebieskie koło główne -->
     <path
         android:fillColor="#2196F3"
-        android:pathData="M54,54m-44,0a44,44 0,1 1,88 0a44,44 0,1 1,-88 0"/>
+        android:pathData="M54,54m-42,0a42,42 0,1 1,84 0a42,42 0,1 1,-84 0"/>
     
-    <!-- Lokalizacja pin - większa -->
+    <!-- Lokalizacja pin -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,26c-10.6,0 -19.2,8.6 -19.2,19.2c0,14.4 19.2,31.2 19.2,31.2s19.2,-16.8 19.2,-31.2c0,-10.6 -8.6,-19.2 -19.2,-19.2zM54,51.2c-3.31,0 -6,-2.69 -6,-6s2.69,-6 6,-6 6,2.69 6,6 -2.69,6 -6,6z"/>
+        android:pathData="M54,24c-11.6,0 -21,9.4 -21,21c0,15.75 21,34 21,34s21,-18.25 21,-34c0,-11.6 -9.4,-21 -21,-21zM54,51.5c-3.59,0 -6.5,-2.91 -6.5,-6.5s2.91,-6.5 6.5,-6.5 6.5,2.91 6.5,6.5 -2.91,6.5 -6.5,6.5z"/>
     
-    <!-- Mała ikona aparatu/zdjęcia - większa -->
+    <!-- Mała ikona aparatu/zdjęcia -->
     <path
         android:fillColor="#4CAF50"
-        android:pathData="M71,60h-2.4l-1.2,-1.2h-4.8l-1.2,1.2h-2.4c-1.32,0 -2.4,1.08 -2.4,2.4v7.2c0,1.32 1.08,2.4 2.4,2.4h12c1.32,0 2.4,-1.08 2.4,-2.4v-7.2c0,-1.32 -1.08,-2.4 -2.4,-2.4zM65,70.4c-2,0 -3.6,-1.6 -3.6,-3.6s1.6,-3.6 3.6,-3.6 3.6,1.6 3.6,3.6 -1.6,3.6 -3.6,3.6z"/>
+        android:pathData="M72,62h-3l-1.5,-1.5h-6l-1.5,1.5h-3c-1.65,0 -3,1.35 -3,3v9c0,1.65 1.35,3 3,3h15c1.65,0 3,-1.35 3,-3v-9c0,-1.65 -1.35,-3 -3,-3zM64.5,74.5c-2.5,0 -4.5,-2 -4.5,-4.5s2,-4.5 4.5,-4.5 4.5,2 4.5,4.5 -2,4.5 -4.5,4.5z"/>
 
 </vector>

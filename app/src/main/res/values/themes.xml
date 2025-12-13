@@ -1,12 +1,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.TripLog" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Primary colors (Blue) -->
-        <item name="colorPrimary">@color/accent_blue</item>
+        <!-- Primary colors (Pink/Purple for new theme) -->
+        <item name="colorPrimary">@color/accent_pink</item>
         <item name="colorOnPrimary">@color/white</item>
 
-        <!-- Secondary colors (Green) -->
-        <item name="colorSecondary">@color/accent_green</item>
+        <!-- Secondary colors (Purple) -->
+        <item name="colorSecondary">@color/accent_purple</item>
         <item name="colorOnSecondary">@color/white</item>
 
         <!-- Text colors -->
@@ -16,6 +16,9 @@
 
         <!-- Card and elevation -->
         <item name="cardViewStyle">@style/CardViewDark</item>
+        
+        <!-- Alert Dialog style -->
+        <item name="materialAlertDialogTheme">@style/DarkAlertDialog</item>
     </style>
 
     <style name="Theme.TripLog" parent="Base.Theme.TripLog" />
@@ -25,6 +28,41 @@
         <item name="cardBackgroundColor">@color/surface_variant_dark</item>
         <item name="cardCornerRadius">12dp</item>
         <item name="cardElevation">6dp</item>
+    </style>
+    
+    <!-- Custom Dark AlertDialog -->
+    <style name="DarkAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/surface_dark</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorPrimary">@color/accent_pink</item>
+        <item name="colorSecondary">@color/accent_purple</item>
+        <item name="android:background">@color/surface_dark</item>
+        <item name="shapeAppearanceOverlay">@style/DialogCornerRadius</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/DialogTitleStyle</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/DialogBodyStyle</item>
+        <item name="buttonBarPositiveButtonStyle">@style/DialogPositiveButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/DialogNegativeButton</item>
+    </style>
+    
+    <style name="DialogCornerRadius" parent="">
+        <item name="cornerSize">20dp</item>
+    </style>
+    
+    <style name="DialogTitleStyle" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+    
+    <style name="DialogBodyStyle" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+    
+    <style name="DialogPositiveButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/accent_pink</item>
+    </style>
+    
+    <style name="DialogNegativeButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/text_secondary</item>
     </style>
     
     <!-- Fullscreen theme for image viewer -->
